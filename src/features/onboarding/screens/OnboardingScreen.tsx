@@ -60,10 +60,10 @@ const slides: OnboardingSlide[] = [
   },
   {
     id: '4',
-    title: 'Built for Hustlers',
-    subtitle: 'Your business deserves real data',
-    mascot: MascotImages.celebrate,
-    highlight: '🚀',
+    title: 'Add Your Products',
+    subtitle: 'Start by adding the items you sell — then create your first event!',
+    mascot: MascotImages.winkPhone,
+    highlight: '🛍️',
   },
 ];
 

@@ -137,6 +137,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [eventProfits, setEventProfits] = useState<Record<string, number>>({});
   const [lowStockItems, setLowStockItems] = useState<QuickSaleItem[]>([]);
+  const [hasProducts, setHasProducts] = useState(true);
 
   const loadData = useCallback(() => {
     const allEvents = getAllEvents();
@@ -146,6 +147,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
     // Check for low stock items based on user's threshold setting
     const threshold = getLowStockThreshold();
     const allProducts = getQuickSaleItems();
+    setHasProducts(allProducts.length > 0);
     const lowStock = allProducts.filter(p => 
       p.stockCount !== undefined && p.stockCount <= threshold
     ).sort((a, b) => (a.stockCount || 0) - (b.stockCount || 0));
@@ -222,13 +224,23 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
 
         {!hasEvents ? (
           <View style={{ paddingHorizontal: 24 }}>
-            <EmptyState
-              title="Welcome to VendStats!"
-              message="Create your first event to start tracking your pop-up business profits."
-              actionLabel="Create Event"
-              onAction={() => navigation.navigate('CreateEvent')}
-              icon={<Image source={MascotImages.tent} style={{ width: 120, height: 120 }} resizeMode="contain" />}
-            />
+            {!hasProducts ? (
+              <EmptyState
+                title="Welcome to VendStats!"
+                message="First, add the products you sell. Then you can create events and track your profits!"
+                actionLabel="Add Products"
+                onAction={() => navigation.navigate('AddProduct')}
+                icon={<Image source={MascotImages.winkPhone} style={{ width: 120, height: 120 }} resizeMode="contain" />}
+              />
+            ) : (
+              <EmptyState
+                title="Products Ready! 🎉"
+                message="Now create your first event to start tracking your pop-up business profits."
+                actionLabel="Create Event"
+                onAction={() => navigation.navigate('CreateEvent')}
+                icon={<Image source={MascotImages.tent} style={{ width: 120, height: 120 }} resizeMode="contain" />}
+              />
+            )}
           </View>
         ) : (
           <View style={{ paddingHorizontal: 24 }}>
