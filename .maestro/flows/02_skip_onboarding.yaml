@@ -2,9 +2,6 @@
 # Verifies the skip button works
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # First slide
 - assertVisible: "Track Every Sale"
 

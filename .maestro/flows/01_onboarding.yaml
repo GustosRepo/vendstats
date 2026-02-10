@@ -2,9 +2,6 @@
 # Verifies the complete onboarding experience
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # First slide - Track Every Sale
 - assertVisible: "Track Every Sale"
 - assertVisible: "Log sales in seconds at any pop-up event"

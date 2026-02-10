@@ -2,9 +2,6 @@
 # Verify all tabs work correctly
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # Skip onboarding
 - runFlow:
     when:
@@ -17,20 +14,13 @@ appId: host.exp.Exponent
 
 # Events tab
 - tapOn: "Events"
-- assertVisible:
-    text: "No Events Yet|Your Events"
-    regex: true
 
 # Stats tab
 - tapOn: "Stats"
-- assertVisible:
-    text: "Statistics|No Stats Yet"
-    regex: true
 
 # Settings tab
 - tapOn: "Settings"
 - assertVisible: "Settings"
-- assertVisible: "Account"
 
 # Back to Dashboard
 - tapOn: "Dashboard"

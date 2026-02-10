@@ -2,9 +2,6 @@
 # Test adding quick sale items and logging sales
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # Skip onboarding
 - runFlow:
     when:
@@ -18,8 +15,9 @@ appId: host.exp.Exponent
     text: "e.g., Farmers Market Downtown"
 - inputText: "Quick Sale Test Event"
 - hideKeyboard
-- scroll:
-    direction: DOWN
+- swipe:
+    direction: UP
+    duration: 500
 - tapOn: "Create Event"
 
 # Wait for event detail screen

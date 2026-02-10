@@ -2,9 +2,6 @@
 # Full flow: Dashboard → Create Event → Log Sale → Verify Stats
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # Skip onboarding if present
 - runFlow:
     when:
@@ -26,8 +23,9 @@ appId: host.exp.Exponent
 
 # Hide keyboard and fill other fields
 - hideKeyboard
-- scroll:
-    direction: DOWN
+- swipe:
+    direction: UP
+    duration: 500
 
 # Tap on booth fee field
 - tapOn:
@@ -37,8 +35,9 @@ appId: host.exp.Exponent
 - hideKeyboard
 
 # Create the event
-- scroll:
-    direction: DOWN
+- swipe:
+    direction: UP
+    duration: 500
 - tapOn: "Create Event"
 
 # Should be on Event Detail screen
@@ -62,8 +61,9 @@ appId: host.exp.Exponent
 - hideKeyboard
 
 # Save the sale
-- scroll:
-    direction: DOWN
+- swipe:
+    direction: UP
+    duration: 500
 - tapOn: "Save Sale"
 
 # Verify sale appears on event detail

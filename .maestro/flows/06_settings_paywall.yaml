@@ -2,9 +2,6 @@
 # Test settings navigation and paywall display
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # Skip onboarding
 - runFlow:
     when:

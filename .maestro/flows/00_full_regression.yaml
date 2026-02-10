@@ -2,9 +2,6 @@
 # Runs through all major app flows
 appId: host.exp.Exponent
 ---
-- launchApp:
-    clearState: true
-
 # === ONBOARDING ===
 - assertVisible: "Track Every Sale"
 - tapOn: "Skip"
@@ -19,8 +16,9 @@ appId: host.exp.Exponent
     text: "e.g., Farmers Market Downtown"
 - inputText: "Regression Test Event"
 - hideKeyboard
-- scroll:
-    direction: DOWN
+- swipe:
+    direction: UP
+    duration: 500
 - tapOn: "Create Event"
 - assertVisible: "Regression Test Event"
 
@@ -35,8 +33,9 @@ appId: host.exp.Exponent
     index: 0
 - inputText: "20"
 - hideKeyboard
-- scroll:
-    direction: DOWN
+- swipe:
+    direction: UP
+    duration: 500
 - tapOn: "Save Sale"
 - assertVisible: "Test Item"
 
