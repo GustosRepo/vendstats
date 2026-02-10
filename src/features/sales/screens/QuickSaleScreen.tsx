@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton, InputField, QuickSaleButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { getQuickSaleItems, addQuickSaleItem, quickCreateSale, getEventById } from '../../../storage';
+import { getQuickSaleItems, addQuickSaleItem, quickCreateSale, getEventById, updateQuickSaleItem } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
 import { colors } from '../../../theme';
@@ -55,6 +55,21 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
     if (!selectedItem) return;
     
     quickCreateSale(eventId, selectedItem.itemName, selectedItem.defaultPrice, selectedItem.defaultCost, quantity);
+    
+    // Update stock count if tracking inventory
+    if (selectedItem.stockCount !== undefined) {
+      const newStock = Math.max(0, selectedItem.stockCount - quantity);
+      updateQuickSaleItem(selectedItem.id, { stockCount: newStock });
+      
+      // Update local state
+      setQuickItems(prev => 
+        prev.map(item => 
+          item.id === selectedItem.id 
+            ? { ...item, stockCount: newStock }
+            : item
+        )
+      );
+    }
     
     // Add to recent sales for feedback
     setRecentSales(prev => [
@@ -293,7 +308,49 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                   <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
                     {formatCurrency(selectedItem.defaultPrice)} each
                   </Text>
+                  {selectedItem.stockCount !== undefined && (
+                    <View style={{ 
+                      flexDirection: 'row', 
+                      alignItems: 'center', 
+                      marginTop: 8,
+                      backgroundColor: selectedItem.stockCount > 0 ? colors.primary + '15' : colors.error + '15',
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                    }}>
+                      <Ionicons 
+                        name="cube-outline" 
+                        size={14} 
+                        color={selectedItem.stockCount > 0 ? colors.primary : colors.error} 
+                      />
+                      <Text style={{ 
+                        fontSize: 12, 
+                        fontWeight: '600',
+                        color: selectedItem.stockCount > 0 ? colors.primary : colors.error,
+                        marginLeft: 4,
+                      }}>
+                        {selectedItem.stockCount} in stock
+                      </Text>
+                    </View>
+                  )}
                 </View>
+
+                {/* Low stock warning */}
+                {selectedItem.stockCount !== undefined && quantity > selectedItem.stockCount && (
+                  <View style={{ 
+                    backgroundColor: colors.error + '15', 
+                    padding: 10, 
+                    borderRadius: 8,
+                    marginBottom: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                    <Ionicons name="warning" size={16} color={colors.error} />
+                    <Text style={{ color: colors.error, fontSize: 12, marginLeft: 8, flex: 1 }}>
+                      Selling more than you have in stock!
+                    </Text>
+                  </View>
+                )}
 
                 {/* Quantity Picker */}
                 <View style={{ 
