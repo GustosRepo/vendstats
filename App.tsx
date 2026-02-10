@@ -1,3 +1,4 @@
+import 'react-native-get-random-values'; // Must be first - polyfill for uuid
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';

@@ -5,7 +5,7 @@ import { TabParamList } from './types';
 import { colors } from '../theme';
 
 // Screens
-import { DashboardScreen } from '../screens/DashboardScreen';
+import { DashboardScreen } from '../features/dashboard/screens/DashboardScreen';
 import { EventsScreen } from '../features/events/screens/EventsScreen';
 import { GlobalStatsScreen } from '../features/stats/screens/GlobalStatsScreen';
 import { SettingsScreen } from '../features/settings/screens/SettingsScreen';

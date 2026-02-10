@@ -12,7 +12,7 @@ import { TabNavigator } from './TabNavigator';
 import { OnboardingScreen } from '../features/onboarding/screens/OnboardingScreen';
 import { CreateEventScreen } from '../features/events/screens/CreateEventScreen';
 import { EditEventScreen } from '../features/events/screens/EditEventScreen';
-import { EventDetailScreen } from '../screens/EventDetailScreen';
+import { EventDetailScreen } from '../features/events/screens/EventDetailScreen';
 import { AddSaleScreen } from '../features/sales/screens/AddSaleScreen';
 import { EditSaleScreen } from '../features/sales/screens/EditSaleScreen';
 import { QuickSaleScreen } from '../features/sales/screens/QuickSaleScreen';
