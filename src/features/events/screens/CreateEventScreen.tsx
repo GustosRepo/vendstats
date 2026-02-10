@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { createEvent, getQuickSaleItems } from '../../../storage';
+import { createEvent, getQuickSaleItems, getAllEvents, shouldShowEventPaywall } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { format } from 'date-fns';
 import { colors } from '../../../theme';
@@ -22,6 +22,14 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
   // Product selection
   const [allProducts, setAllProducts] = useState<QuickSaleItem[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  // Check paywall on mount
+  useEffect(() => {
+    const events = getAllEvents();
+    if (shouldShowEventPaywall(events.length)) {
+      navigation.replace('Paywall');
+    }
+  }, [navigation]);
 
   useEffect(() => {
     const products = getQuickSaleItems();

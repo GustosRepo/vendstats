@@ -8,8 +8,8 @@ import { TabScreenProps } from '../../../navigation/types';
 import { EmptyState } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
-import { getAllEvents, getAllSales } from '../../../storage';
-import { calculateGlobalStats, getRevenueOverTime, getTopSellingProducts, getProfitByEvent } from '../../../utils/calculations';
+import { getAllEvents, getAllSales, getQuickSaleItems } from '../../../storage';
+import { calculateGlobalStats, getRevenueOverTime, getTopSellingProducts, getProfitByEvent, getExtendedStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
 import { GlobalStats } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
@@ -72,18 +72,29 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
   const [revenueData, setRevenueData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] });
   const [topProducts, setTopProducts] = useState<{ name: string; quantity: number; revenue: number }[]>([]);
   const [eventProfits, setEventProfits] = useState<{ name: string; profit: number; revenue: number }[]>([]);
+  const [extendedStats, setExtendedStats] = useState<any>(null);
+  const [inventoryValue, setInventoryValue] = useState({ atCost: 0, atRetail: 0 });
 
   const screenWidth = Dimensions.get('window').width - 48;
 
   const loadStats = useCallback(() => {
     const events = getAllEvents();
     const sales = getAllSales();
+    const products = getQuickSaleItems();
     
     setHasEvents(events.length > 0);
     
     if (events.length > 0) {
       const globalStats = calculateGlobalStats(events, sales);
       setStats(globalStats);
+      
+      // Extended stats
+      setExtendedStats(getExtendedStats(events, sales));
+      
+      // Inventory value
+      const atCost = products.reduce((sum, p) => sum + (p.stockCount || 0) * p.defaultCost, 0);
+      const atRetail = products.reduce((sum, p) => sum + (p.stockCount || 0) * p.defaultPrice, 0);
+      setInventoryValue({ atCost, atRetail });
       
       // Chart data
       setRevenueData(getRevenueOverTime(sales, 30));
@@ -191,6 +202,163 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
               </View>
             </View>
           </View>
+
+          {/* Profit Margin & Items Sold Row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            <View style={{ flex: 1 }}>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                  Profit Margin
+                </Text>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: (extendedStats?.profitMargin || 0) >= 0 ? colors.growth : colors.danger }}>
+                  {(extendedStats?.profitMargin || 0).toFixed(1)}%
+                </Text>
+              </View>
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                  Items Sold
+                </Text>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary }}>{extendedStats?.totalItemsSold || 0}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Avg Sale Value & Items/Event Row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            <View style={{ flex: 1 }}>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                  Avg Sale
+                </Text>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: colors.copper }}>
+                  {formatCurrency(extendedStats?.avgSaleValue || 0)}
+                </Text>
+              </View>
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                  Items / Event
+                </Text>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary }}>
+                  {(extendedStats?.avgItemsPerEvent || 0).toFixed(1)}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Expense Breakdown */}
+          {(extendedStats?.totalBoothFees > 0 || extendedStats?.totalTravelCosts > 0) && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
+                Expense Breakdown
+              </Text>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 15, color: colors.textSecondary }}>Booth Fees</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.danger }}>{formatCurrency(extendedStats?.totalBoothFees || 0)}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 15, color: colors.textSecondary }}>Travel Costs</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.danger }}>{formatCurrency(extendedStats?.totalTravelCosts || 0)}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 15, color: colors.textSecondary }}>Cost of Goods</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.danger }}>{formatCurrency(extendedStats?.totalCostOfGoods || 0)}</Text>
+                </View>
+                <View style={{ height: 1, backgroundColor: colors.divider, marginVertical: 8 }} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }}>Total Expenses</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.danger }}>
+                    {formatCurrency((extendedStats?.totalBoothFees || 0) + (extendedStats?.totalTravelCosts || 0) + (extendedStats?.totalCostOfGoods || 0))}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Inventory Value */}
+          {(inventoryValue.atCost > 0 || inventoryValue.atRetail > 0) && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
+                Inventory Value
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                      At Cost
+                    </Text>
+                    <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary }}>
+                      {formatCurrency(inventoryValue.atCost)}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                      Potential
+                    </Text>
+                    <Text style={{ fontSize: 20, fontWeight: '700', color: colors.growth }}>
+                      {formatCurrency(inventoryValue.atRetail)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Product Insights */}
+          {(extendedStats?.bestSeller || extendedStats?.highestRevenue || extendedStats?.mostProfitableProduct) && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
+                Product Insights
+              </Text>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
+                {extendedStats?.bestSeller && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+                        Best Seller
+                      </Text>
+                      <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
+                        {extendedStats.bestSeller.name}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.copper }}>{extendedStats.bestSeller.quantity} sold</Text>
+                  </View>
+                )}
+                {extendedStats?.highestRevenue && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+                        Highest Revenue
+                      </Text>
+                      <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
+                        {extendedStats.highestRevenue.name}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.growth }}>{formatCurrency(extendedStats.highestRevenue.revenue)}</Text>
+                  </View>
+                )}
+                {extendedStats?.mostProfitableProduct && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+                        Most Profitable
+                      </Text>
+                      <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
+                        {extendedStats.mostProfitableProduct.name}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.growth }}>{formatCurrency(extendedStats.mostProfitableProduct.profit)}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
 
           {/* Most Profitable Event */}
           {stats.mostProfitableEvent && (
@@ -328,7 +496,7 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
                 <BarChart
                   data={{
                     labels: eventProfits.slice(0, 5).map(e => e.name),
-                    datasets: [{ data: eventProfits.slice(0, 5).map(e => Math.max(0, e.profit)) }],
+                    datasets: [{ data: eventProfits.slice(0, 5).map(e => Math.round(Math.max(0, e.profit))) }],
                   }}
                   width={screenWidth - 32}
                   height={200}

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, Image, Modal } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton, QuickSaleButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -54,6 +55,9 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
     if (!selectedItem) return;
     
     quickCreateSale(eventId, selectedItem.itemName, selectedItem.defaultPrice, selectedItem.defaultCost, quantity);
+    
+    // Success haptic feedback
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     
     // Update stock count if tracking inventory
     if (selectedItem.stockCount !== undefined) {

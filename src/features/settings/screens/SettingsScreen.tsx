@@ -198,7 +198,7 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
       <TexturePattern />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 160 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 200 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}

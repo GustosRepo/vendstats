@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { TexturePattern } from '../../../components/TexturePattern';
+import { PressableScale, AnimatedListItem } from '../../../components/animations';
 import { getQuickSaleItems, deleteQuickSaleItem } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
@@ -74,87 +75,89 @@ export const ProductsScreen: React.FC = () => {
     );
   };
 
-  const renderProductItem = ({ item }: { item: QuickSaleItem }) => (
-    <TouchableOpacity
-      onPress={() => handleProductPress(item)}
-      onLongPress={() => handleProductLongPress(item)}
-      activeOpacity={0.8}
-      style={{
-        width: ITEM_SIZE,
-        height: ITEM_SIZE,
-        margin: GRID_GAP / 2,
-        backgroundColor: colors.surface,
-        borderRadius: 8,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: colors.divider,
-      }}
-    >
-      {item.imageUri ? (
-        <Image
-          source={{ uri: item.imageUri }}
-          style={{ width: '100%', height: '100%' }}
-          resizeMode="cover"
-        />
-      ) : (
-        <View 
-          style={{ 
-            flex: 1, 
-            backgroundColor: colors.copper + '20',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Ionicons name="cube-outline" size={32} color={colors.copper} />
-        </View>
-      )}
-      
-      {/* Price badge */}
-      <View
+  const renderProductItem = ({ item, index }: { item: QuickSaleItem; index: number }) => (
+    <AnimatedListItem index={index} type="scale" delay={50}>
+      <PressableScale
+        onPress={() => handleProductPress(item)}
+        onLongPress={() => handleProductLongPress(item)}
+        scaleValue={0.92}
         style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'rgba(0,0,0,0.65)',
-          paddingVertical: 4,
-          paddingHorizontal: 6,
+          width: ITEM_SIZE,
+          height: ITEM_SIZE,
+          margin: GRID_GAP / 2,
+          backgroundColor: colors.surface,
+          borderRadius: 8,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.divider,
         }}
       >
-        <Text 
-          style={{ 
-            color: '#fff', 
-            fontSize: 11, 
-            fontWeight: '600',
-          }}
-          numberOfLines={1}
-        >
-          {item.itemName}
-        </Text>
-        <Text style={{ color: colors.success, fontSize: 12, fontWeight: '700' }}>
-          {formatCurrency(item.defaultPrice)}
-        </Text>
-      </View>
-
-      {/* Stock badge */}
-      {item.stockCount !== undefined && (
+        {item.imageUri ? (
+          <Image
+            source={{ uri: item.imageUri }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View 
+            style={{ 
+              flex: 1, 
+              backgroundColor: colors.copper + '20',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="cube-outline" size={32} color={colors.copper} />
+          </View>
+        )}
+        
+        {/* Price badge */}
         <View
           style={{
             position: 'absolute',
-            top: 6,
-            right: 6,
-            backgroundColor: item.stockCount > 0 ? colors.primary : colors.error,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'rgba(0,0,0,0.65)',
+            paddingVertical: 4,
             paddingHorizontal: 6,
-            paddingVertical: 2,
-            borderRadius: 10,
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 10, fontWeight: '600' }}>
-            {item.stockCount}
+          <Text 
+            style={{ 
+              color: '#fff', 
+              fontSize: 11, 
+              fontWeight: '600',
+            }}
+            numberOfLines={1}
+          >
+            {item.itemName}
+          </Text>
+          <Text style={{ color: colors.success, fontSize: 12, fontWeight: '700' }}>
+            {formatCurrency(item.defaultPrice)}
           </Text>
         </View>
-      )}
-    </TouchableOpacity>
+
+        {/* Stock badge */}
+        {item.stockCount !== undefined && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              backgroundColor: item.stockCount > 0 ? colors.primary : colors.error,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              borderRadius: 10,
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 10, fontWeight: '600' }}>
+              {item.stockCount}
+            </Text>
+          </View>
+        )}
+      </PressableScale>
+    </AnimatedListItem>
   );
 
   const EmptyState = () => (

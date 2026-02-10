@@ -64,6 +64,8 @@ export const RootNavigator: React.FC = () => {
           contentStyle: {
             backgroundColor: colors.background,
           },
+          animation: 'slide_from_right',
+          animationDuration: 250,
         }}
       >
         <Stack.Screen

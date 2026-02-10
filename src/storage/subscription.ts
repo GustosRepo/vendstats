@@ -119,3 +119,20 @@ export const shouldShowPaywall = (hasCreatedEvent: boolean): boolean => {
 export const resetSubscription = (): void => {
   saveSubscriptionState(DEFAULT_SUBSCRIPTION_STATE);
 };
+
+// Check if user can create an event (1 free event, then paywall)
+export const canCreateEvent = (currentEventCount: number): boolean => {
+  // Premium users can create unlimited events
+  if (hasPremiumAccess()) {
+    return true;
+  }
+  
+  // Free users get 1 event
+  const FREE_EVENT_LIMIT = 1;
+  return currentEventCount < FREE_EVENT_LIMIT;
+};
+
+// Check if paywall should show for event creation
+export const shouldShowEventPaywall = (currentEventCount: number): boolean => {
+  return !canCreateEvent(currentEventCount);
+};

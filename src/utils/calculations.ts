@@ -217,3 +217,76 @@ export const getProfitByEvent = (events: Event[], allSales: Sale[]): { name: str
     };
   }).sort((a, b) => b.profit - a.profit);
 };
+
+/**
+ * Get extended stats for the stats screen
+ */
+export const getExtendedStats = (events: Event[], allSales: Sale[]) => {
+  // Profit margin
+  const totalRevenue = allSales.reduce((sum, s) => sum + s.salePrice * s.quantity, 0);
+  const totalCost = allSales.reduce((sum, s) => sum + s.costPerItem * s.quantity, 0);
+  const totalExpenses = events.reduce((sum, e) => sum + e.boothFee + e.travelCost, 0);
+  const netProfit = totalRevenue - totalCost - totalExpenses;
+  const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+  
+  // Expense breakdown
+  const totalBoothFees = events.reduce((sum, e) => sum + e.boothFee, 0);
+  const totalTravelCosts = events.reduce((sum, e) => sum + e.travelCost, 0);
+  
+  // Total items sold
+  const totalItemsSold = allSales.reduce((sum, s) => sum + s.quantity, 0);
+  
+  // Average sale value
+  const avgSaleValue = allSales.length > 0 
+    ? totalRevenue / allSales.length 
+    : 0;
+    
+  // Average items per event
+  const avgItemsPerEvent = events.length > 0 
+    ? totalItemsSold / events.length 
+    : 0;
+    
+  // Highest revenue product
+  const productMap = new Map<string, { quantity: number; revenue: number; profit: number }>();
+  allSales.forEach(sale => {
+    const existing = productMap.get(sale.itemName) || { quantity: 0, revenue: 0, profit: 0 };
+    productMap.set(sale.itemName, {
+      quantity: existing.quantity + sale.quantity,
+      revenue: existing.revenue + sale.salePrice * sale.quantity,
+      profit: existing.profit + (sale.salePrice - sale.costPerItem) * sale.quantity,
+    });
+  });
+  
+  let bestSeller: { name: string; quantity: number; revenue: number } | null = null;
+  let highestRevenue: { name: string; revenue: number } | null = null;
+  let mostProfitableProduct: { name: string; profit: number } | null = null;
+  
+  let maxQty = 0, maxRev = 0, maxProfit = 0;
+  productMap.forEach((data, name) => {
+    if (data.quantity > maxQty) {
+      maxQty = data.quantity;
+      bestSeller = { name, quantity: data.quantity, revenue: data.revenue };
+    }
+    if (data.revenue > maxRev) {
+      maxRev = data.revenue;
+      highestRevenue = { name, revenue: data.revenue };
+    }
+    if (data.profit > maxProfit) {
+      maxProfit = data.profit;
+      mostProfitableProduct = { name, profit: data.profit };
+    }
+  });
+  
+  return {
+    profitMargin,
+    totalBoothFees,
+    totalTravelCosts,
+    totalItemsSold,
+    avgSaleValue,
+    avgItemsPerEvent,
+    bestSeller,
+    highestRevenue,
+    mostProfitableProduct,
+    totalCostOfGoods: totalCost,
+  };
+};

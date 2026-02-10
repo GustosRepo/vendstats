@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -60,6 +61,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
         costPerItem: parseFloat(costPerItem) || 0,
       });
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (error) {
       Alert.alert('Error', 'Failed to add sale. Please try again.');

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { PressableScale } from '../animations';
 import { colors } from '../../theme';
 
 interface QuickSaleButtonProps {
@@ -19,9 +20,10 @@ export const QuickSaleButton: React.FC<QuickSaleButtonProps> = ({
   stockCount,
 }) => {
   return (
-    <TouchableOpacity
+    <PressableScale
       onPress={onPress}
-      activeOpacity={0.85}
+      scaleValue={0.92}
+      hapticType="medium"
       style={{
         width: 100,
         height: 130,
@@ -94,6 +96,6 @@ export const QuickSaleButton: React.FC<QuickSaleButtonProps> = ({
           {itemName}
         </Text>
       </View>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };

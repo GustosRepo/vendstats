@@ -2,11 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { ScrollView, View, Text, Dimensions, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path, Defs, LinearGradient, Stop, Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { EmptyState } from '../../../components';
+import { PressableScale, AnimatedListItem, FadeIn } from '../../../components/animations';
 import { getAllEvents, getAllSales, getQuickSaleItems, getLowStockThreshold } from '../../../storage';
 import { calculateGlobalStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
@@ -16,55 +16,9 @@ import { MascotImages } from '../../../../assets';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Finance chart component
-const FinanceChart: React.FC<{ data: number[]; height?: number }> = ({ data, height = 100 }) => {
-  const width = screenWidth - 64;
-  const padding = { top: 12, bottom: 8, left: 0, right: 0 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-
-  if (data.length < 2) return null;
-
-  const minValue = Math.min(...data) * 0.85;
-  const maxValue = Math.max(...data) * 1.05;
-  const range = maxValue - minValue || 1;
-
-  const points = data.map((value, index) => ({
-    x: padding.left + (index / (data.length - 1)) * chartWidth,
-    y: padding.top + chartHeight - ((value - minValue) / range) * chartHeight,
-  }));
-
-  let pathD = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1];
-    const curr = points[i];
-    const tension = 0.3;
-    const cp1x = prev.x + (curr.x - prev.x) * tension;
-    const cp2x = curr.x - (curr.x - prev.x) * tension;
-    pathD += ` C ${cp1x} ${prev.y}, ${cp2x} ${curr.y}, ${curr.x} ${curr.y}`;
-  }
-
-  const areaD = pathD + ` L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
-  const lastPoint = points[points.length - 1];
-
-  return (
-    <Svg width={width} height={height}>
-      <Defs>
-        <LinearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <Stop offset="0%" stopColor={colors.chartLine} stopOpacity={0.12} />
-          <Stop offset="100%" stopColor={colors.chartLine} stopOpacity={0.01} />
-        </LinearGradient>
-      </Defs>
-      <Path d={areaD} fill="url(#chartGradient)" />
-      <Path d={pathD} stroke={colors.chartLine} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx={lastPoint.x} cy={lastPoint.y} r={5} fill={colors.surface} stroke={colors.chartLine} strokeWidth={2.5} />
-    </Svg>
-  );
-};
-
 // Pill button
 const PillButton: React.FC<{ label: string; onPress: () => void }> = ({ label, onPress }) => (
-  <TouchableOpacity
+  <PressableScale
     onPress={onPress}
     style={{
       backgroundColor: colors.primary,
@@ -72,19 +26,17 @@ const PillButton: React.FC<{ label: string; onPress: () => void }> = ({ label, o
       paddingVertical: 10,
       paddingHorizontal: 20,
     }}
-    activeOpacity={0.85}
   >
     <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFFFFF' }}>{label}</Text>
-  </TouchableOpacity>
+  </PressableScale>
 );
 
-// Hero revenue card
-const HeroRevenueCard: React.FC<{ revenue: number; revenueData: number[] }> = ({ revenue, revenueData }) => (
+// Hero revenue card - clean and simple
+const HeroRevenueCard: React.FC<{ revenue: number }> = ({ revenue }) => (
   <View style={[{ 
     backgroundColor: colors.surface, 
     borderRadius: radius.xl, 
     padding: 24,
-    paddingBottom: 16,
   }, shadows.lg]}>
     <Text style={{ 
       fontSize: 11, 
@@ -101,15 +53,9 @@ const HeroRevenueCard: React.FC<{ revenue: number; revenueData: number[] }> = ({
       fontWeight: '700', 
       color: colors.textPrimary, 
       letterSpacing: -1.5,
-      marginBottom: 4,
     }}>
       {formatCurrency(revenue)}
     </Text>
-    {revenueData.length > 1 && (
-      <View style={{ marginTop: 16 }}>
-        <FinanceChart data={revenueData} height={90} />
-      </View>
-    )}
   </View>
 );
 
@@ -159,16 +105,17 @@ const EventRow: React.FC<{
   onPress: () => void;
   isLast?: boolean;
 }> = ({ event, profit, onPress, isLast }) => (
-  <TouchableOpacity 
+  <PressableScale 
     onPress={onPress} 
+    scaleValue={0.98}
+    hapticType="selection"
     style={{ 
       flexDirection: 'row', 
       alignItems: 'center', 
       paddingVertical: 16,
       borderBottomWidth: isLast ? 0 : 1,
       borderBottomColor: colors.divider,
-    }} 
-    activeOpacity={0.7}
+    }}
   >
     <View style={{ flex: 1 }}>
       <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
@@ -182,7 +129,7 @@ const EventRow: React.FC<{
       {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
     </Text>
     <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-  </TouchableOpacity>
+  </PressableScale>
 );
 
 export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigation }) => {
@@ -228,19 +175,12 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
   const recentEvents = events.slice(0, 3);
   const hasEvents = events.length > 0;
 
-  // Build revenue trend from events
-  const revenueData = events
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(-12)
-    .map(e => eventProfits[e.id] || 0)
-    .map((_, i, arr) => arr.slice(0, i + 1).reduce((sum, v) => sum + v, 0)); // Cumulative
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
       <TexturePattern />
       <ScrollView 
         showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ paddingBottom: 180 }}
+        contentContainerStyle={{ paddingBottom: 140 }}
       >
         {/* Header Section */}
         <View style={{ 
@@ -263,7 +203,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                   letterSpacing: -0.5,
                   marginBottom: 2,
                 }}>
-                  Your Hustle
+                  VendStats 
                 </Text>
                 <Text style={{ 
                   fontSize: 14, 
@@ -293,46 +233,48 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
         ) : (
           <View style={{ paddingHorizontal: 24 }}>
             {/* Hero Revenue Card */}
-            <View style={{ marginBottom: 16 }}>
-              <HeroRevenueCard 
-                revenue={stats?.totalRevenue || 0} 
-                revenueData={revenueData}
-              />
-            </View>
+            <AnimatedListItem index={0} type="slideUp">
+              <View style={{ marginBottom: 16 }}>
+                <HeroRevenueCard revenue={stats?.totalRevenue || 0} />
+              </View>
+            </AnimatedListItem>
 
             {/* Secondary Metrics Row */}
-            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
-              <MetricCard 
-                label="Net Profit" 
-                value={formatCurrency(stats?.totalProfit || 0)} 
-              />
-              <MetricCard 
-                label="Events" 
-                value={String(events.length)} 
-              />
-            </View>
+            <AnimatedListItem index={1} type="slideUp">
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
+                <MetricCard 
+                  label="Net Profit" 
+                  value={formatCurrency(stats?.totalProfit || 0)} 
+                />
+                <MetricCard 
+                  label="Events" 
+                  value={String(events.length)} 
+                />
+              </View>
+            </AnimatedListItem>
 
             {/* Low Stock Alert */}
             {lowStockItems.length > 0 && (
-              <View style={{ marginBottom: 24 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons name="alert-circle" size={16} color={colors.danger || '#EF4444'} style={{ marginRight: 6 }} />
-                    <Text style={{ 
-                      fontSize: 11, 
-                      fontWeight: '600', 
-                      color: colors.danger || '#EF4444', 
-                      letterSpacing: 0.8, 
-                      textTransform: 'uppercase',
-                    }}>
-                      Low Stock Alert
-                    </Text>
+              <AnimatedListItem index={2} type="slideUp">
+                <View style={{ marginBottom: 24 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Ionicons name="alert-circle" size={16} color={colors.danger || '#EF4444'} style={{ marginRight: 6 }} />
+                      <Text style={{ 
+                        fontSize: 11, 
+                        fontWeight: '600', 
+                        color: colors.danger || '#EF4444', 
+                        letterSpacing: 0.8, 
+                        textTransform: 'uppercase',
+                      }}>
+                        Low Stock Alert
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => navigation.navigate('Products')}>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => navigation.navigate('Products')}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={[{ 
+                  <View style={[{ 
                   backgroundColor: colors.surface, 
                   borderRadius: radius.xl, 
                   paddingHorizontal: 16,
@@ -387,31 +329,33 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                       +{lowStockItems.length - 3} more items low on stock
                     </Text>
                   )}
+                  </View>
                 </View>
-              </View>
+              </AnimatedListItem>
             )}
 
             {/* Recent Events Section */}
             {recentEvents.length > 0 && (
-              <View style={{ marginBottom: 24 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <Text style={{ 
-                    fontSize: 11, 
-                    fontWeight: '600', 
-                    color: colors.textTertiary, 
-                    letterSpacing: 0.8, 
-                    textTransform: 'uppercase',
-                  }}>
-                    Recent Events
-                  </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('Events')}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={[{ 
-                  backgroundColor: colors.surface, 
-                  borderRadius: radius.xl, 
-                  paddingHorizontal: 20,
+              <AnimatedListItem index={lowStockItems.length > 0 ? 3 : 2} type="slideUp">
+                <View style={{ marginBottom: 24 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <Text style={{ 
+                      fontSize: 11, 
+                      fontWeight: '600', 
+                      color: colors.textTertiary, 
+                      letterSpacing: 0.8, 
+                      textTransform: 'uppercase',
+                    }}>
+                      Recent Events
+                    </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Events')}>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={[{ 
+                    backgroundColor: colors.surface, 
+                    borderRadius: radius.xl, 
+                    paddingHorizontal: 20,
                 }, shadows.md]}>
                   {recentEvents.map((event, index) => (
                     <EventRow 
@@ -422,44 +366,47 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                       isLast={index === recentEvents.length - 1} 
                     />
                   ))}
+                  </View>
                 </View>
-              </View>
+              </AnimatedListItem>
             )}
 
             {/* Quick Action */}
             {recentEvents.length > 0 && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('QuickSale', { eventId: recentEvents[0].id })}
-                style={[{
-                  backgroundColor: colors.surface,
-                  borderRadius: radius.xl,
-                  padding: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }, shadows.md]}
-                activeOpacity={0.7}
-              >
-                <View style={{ 
-                  width: 44, 
-                  height: 44, 
-                  borderRadius: 12, 
-                  backgroundColor: colors.primaryLight, 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  marginRight: 16,
-                }}>
-                  <Ionicons name="flash" size={22} color={colors.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
-                    Quick Sale
-                  </Text>
-                  <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 2 }}>
-                    Record a sale in seconds
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-              </TouchableOpacity>
+              <AnimatedListItem index={lowStockItems.length > 0 ? 4 : 3} type="slideUp">
+                <PressableScale
+                  onPress={() => navigation.navigate('QuickSale', { eventId: recentEvents[0].id })}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: radius.xl,
+                    padding: 20,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    ...shadows.md,
+                  }}
+                >
+                  <View style={{ 
+                    width: 44, 
+                    height: 44, 
+                    borderRadius: 12, 
+                    backgroundColor: colors.primaryLight, 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    marginRight: 16,
+                  }}>
+                    <Ionicons name="flash" size={22} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
+                      Quick Sale
+                    </Text>
+                    <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 2 }}>
+                      Record a sale in seconds
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                </PressableScale>
+              </AnimatedListItem>
             )}
           </View>
         )}

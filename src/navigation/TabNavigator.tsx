@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { TabParamList } from './types';
 import { colors } from '../theme';
+import { AnimatedTabIcon } from '../components/animations';
 
 // Screens
 import { DashboardScreen } from '../features/dashboard/screens/DashboardScreen';
@@ -30,7 +31,7 @@ export const TabNavigator: React.FC = () => {
         tabBarIcon: ({ focused, color }) => {
           const iconSet = tabIcons[route.name] || { active: 'ellipse', inactive: 'ellipse-outline' };
           const iconName = focused ? iconSet.active : iconSet.inactive;
-          return <Ionicons name={iconName} size={22} color={color} />;
+          return <AnimatedTabIcon name={iconName} size={22} color={color} focused={focused} />;
         },
         // Deep money teal for active, muted gray for inactive
         tabBarActiveTintColor: colors.tabActive,
@@ -39,8 +40,9 @@ export const TabNavigator: React.FC = () => {
           backgroundColor: colors.surface,
           borderTopColor: colors.divider,
           borderTopWidth: 1,
-          paddingBottom: 8,
+          paddingBottom: 25,
           paddingTop: 12,
+          paddingHorizontal: 28,
           height: 88,
         },
         tabBarLabelStyle: {

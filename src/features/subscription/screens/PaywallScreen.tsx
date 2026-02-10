@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { startFreeTrial, activateSubscription } from '../../../storage';
+import { requestReviewIfAppropriate } from '../../../utils';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
 // import Purchases from 'react-native-purchases';
@@ -12,6 +13,15 @@ import { MascotImages } from '../../../../assets';
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+
+  // Request review when paywall is shown (user completed free event)
+  useEffect(() => {
+    // Delay review request to let user see the paywall first
+    const timer = setTimeout(() => {
+      requestReviewIfAppropriate();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const plans = {
     monthly: {
@@ -97,10 +107,10 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             resizeMode="contain" 
           />
           <Text className="text-3xl font-bold text-neutral-900 text-center mb-2">
-            Unlock VendStats Pro
+            Your Free Event is Complete! 🎉
           </Text>
           <Text className="text-base text-neutral-500 text-center">
-            Get the most out of your pop-up business
+            Upgrade to Pro for unlimited events and insights
           </Text>
         </View>
 

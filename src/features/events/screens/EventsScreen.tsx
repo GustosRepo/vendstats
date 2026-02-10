@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { EmptyState } from '../../../components';
+import { PressableScale, AnimatedListItem } from '../../../components/animations';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
 import { getEventsSortedByDate, getSalesByEventId, getEventsCount } from '../../../storage';
@@ -23,48 +24,51 @@ const EventCard: React.FC<{
   profit: number;
   salesCount: number;
   onPress: () => void;
-}> = ({ name, date, revenue, profit, salesCount, onPress }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={[{
-      backgroundColor: colors.surface,
-      borderRadius: radius.xl,
-      padding: 20,
-      marginBottom: 12,
-    }, shadows.sm]}
-    activeOpacity={0.7}
-  >
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-      <View style={{ flex: 1, marginRight: 16 }}>
-        <Text style={{ fontSize: 17, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>{name}</Text>
-        <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 4 }}>{date}</Text>
+  index: number;
+}> = ({ name, date, revenue, profit, salesCount, onPress, index }) => (
+  <AnimatedListItem index={index} type="slideUp">
+    <PressableScale
+      onPress={onPress}
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: radius.xl,
+        padding: 20,
+        marginBottom: 12,
+        ...shadows.sm,
+      }}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <View style={{ flex: 1, marginRight: 16 }}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>{name}</Text>
+          <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 4 }}>{date}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-    </View>
-    
-    <View style={{ flexDirection: 'row', gap: 24 }}>
-      <View>
-        <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
-          Revenue
-        </Text>
-        <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary }}>{formatCurrency(revenue)}</Text>
+      
+      <View style={{ flexDirection: 'row', gap: 24 }}>
+        <View>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+            Revenue
+          </Text>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary }}>{formatCurrency(revenue)}</Text>
+        </View>
+        <View>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+            Profit
+          </Text>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: profit >= 0 ? colors.growth : colors.danger }}>
+            {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
+          </Text>
+        </View>
+        <View>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+            Sales
+          </Text>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary }}>{salesCount}</Text>
+        </View>
       </View>
-      <View>
-        <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
-          Profit
-        </Text>
-        <Text style={{ fontSize: 20, fontWeight: '700', color: profit >= 0 ? colors.growth : colors.danger }}>
-          {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
-        </Text>
-      </View>
-      <View>
-        <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
-          Sales
-        </Text>
-        <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary }}>{salesCount}</Text>
-      </View>
-    </View>
-  </TouchableOpacity>
+    </PressableScale>
+  </AnimatedListItem>
 );
 
 export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation }) => {
@@ -104,7 +108,7 @@ export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation })
     navigation.navigate('EventDetail', { eventId });
   };
 
-  const renderEventItem = ({ item }: { item: Event }) => {
+  const renderEventItem = ({ item, index }: { item: Event; index: number }) => {
     const sales = getSalesByEventId(item.id);
     const stats = calculateEventStats(item, sales);
 
@@ -116,6 +120,7 @@ export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation })
         profit={stats.netProfit}
         salesCount={stats.salesCount}
         onPress={() => handleEventPress(item.id)}
+        index={index}
       />
     );
   };
