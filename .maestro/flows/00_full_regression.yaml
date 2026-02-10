@@ -1,0 +1,62 @@
+# Test: Full Regression
+# Runs through all major app flows
+appId: host.exp.Exponent
+---
+- launchApp:
+    clearState: true
+
+# === ONBOARDING ===
+- assertVisible: "Track Every Sale"
+- tapOn: "Skip"
+
+# === DASHBOARD ===
+- assertVisible: "Your Hustle"
+- assertVisible: "This Month Overview"
+
+# === CREATE EVENT ===
+- tapOn: "New Event"
+- tapOn:
+    text: "e.g., Farmers Market Downtown"
+- inputText: "Regression Test Event"
+- hideKeyboard
+- scroll:
+    direction: DOWN
+- tapOn: "Create Event"
+- assertVisible: "Regression Test Event"
+
+# === ADD SALE ===
+- tapOn: "+ Add Sale"
+- tapOn:
+    text: "e.g., Custom Candle"
+- inputText: "Test Item"
+- hideKeyboard
+- tapOn:
+    text: "0.00"
+    index: 0
+- inputText: "20"
+- hideKeyboard
+- scroll:
+    direction: DOWN
+- tapOn: "Save Sale"
+- assertVisible: "Test Item"
+
+# === BACK TO DASHBOARD ===
+- tapOn: "Dashboard"
+- assertVisible: "Your Hustle"
+
+# === EVENTS TAB ===
+- tapOn: "Events"
+- assertVisible: "Regression Test Event"
+
+# === STATS TAB ===
+- tapOn: "Stats"
+- assertVisible: "Statistics"
+
+# === SETTINGS TAB ===
+- tapOn: "Settings"
+- assertVisible: "Settings"
+- assertVisible: "Account"
+
+# === TEST COMPLETE ===
+- tapOn: "Dashboard"
+- assertVisible: "Your Hustle"

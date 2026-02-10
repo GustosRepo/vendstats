@@ -1,0 +1,30 @@
+# Test: Onboarding Flow
+# Verifies the complete onboarding experience
+appId: host.exp.Exponent
+---
+- launchApp:
+    clearState: true
+
+# First slide - Track Every Sale
+- assertVisible: "Track Every Sale"
+- assertVisible: "Log sales in seconds at any pop-up event"
+
+# Navigate through slides
+- tapOn: "Next"
+- assertVisible: "Know Your Profit"
+- assertVisible: "See exactly what you make after costs"
+
+- tapOn: "Next"
+- assertVisible: "Event Insights"
+- assertVisible: "Discover which events make you the most money"
+
+- tapOn: "Next"
+- assertVisible: "Built for Vendors"
+- assertVisible: "Designed by hustlers, for hustlers"
+
+# Final slide has "Let's Go" button
+- tapOn: "Let's Go"
+
+# Should now be on Dashboard
+- assertVisible: "Your Hustle"
+- assertVisible: "This Month Overview"

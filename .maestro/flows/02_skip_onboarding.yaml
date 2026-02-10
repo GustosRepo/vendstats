@@ -1,0 +1,15 @@
+# Test: Skip Onboarding
+# Verifies the skip button works
+appId: host.exp.Exponent
+---
+- launchApp:
+    clearState: true
+
+# First slide
+- assertVisible: "Track Every Sale"
+
+# Skip onboarding
+- tapOn: "Skip"
+
+# Should be on Dashboard
+- assertVisible: "Your Hustle"

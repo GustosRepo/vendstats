@@ -1,0 +1,10 @@
+# Maestro configuration for VendStats
+appId: com.vendstats.app
+name: VendStats
+
+# iOS development app (Expo Go or dev client)
+# When testing with Expo Go, use: host.exp.Exponent
+# When testing with dev client, use: com.vendstats.app
+
+env:
+  APP_ENV: test
