@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { getSaleById, updateSale, deleteSale } from '../../../storage';
+import { getSaleById, updateSale, deleteSale, getQuickSaleItems, updateQuickSaleItem } from '../../../storage';
 import { colors } from '../../../theme';
 
 export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({ 
@@ -17,6 +17,8 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
   const [quantity, setQuantity] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [costPerItem, setCostPerItem] = useState('');
+  const [originalQuantity, setOriginalQuantity] = useState(0);
+  const [originalItemName, setOriginalItemName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -27,6 +29,8 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
       setQuantity(sale.quantity.toString());
       setSalePrice(sale.salePrice.toString());
       setCostPerItem(sale.costPerItem.toString());
+      setOriginalQuantity(sale.quantity);
+      setOriginalItemName(sale.itemName);
     } else {
       Alert.alert('Error', 'Sale not found');
       navigation.goBack();
@@ -59,16 +63,33 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const adjustProductStock = (productItemName: string, quantityChange: number) => {
+    const products = getQuickSaleItems();
+    const product = products.find(p => p.itemName === productItemName);
+    if (product && product.stockCount !== undefined) {
+      const newStock = Math.max(0, product.stockCount - quantityChange);
+      updateQuickSaleItem(product.id, { stockCount: newStock });
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
 
     try {
+      const newQuantity = parseInt(quantity, 10);
+      const quantityDiff = newQuantity - originalQuantity;
+      
+      // Adjust stock based on quantity change
+      if (quantityDiff !== 0) {
+        adjustProductStock(originalItemName, quantityDiff);
+      }
+
       updateSale({
         id: saleId,
         itemName: itemName.trim(),
-        quantity: parseInt(quantity, 10),
+        quantity: newQuantity,
         salePrice: parseFloat(salePrice),
         costPerItem: parseFloat(costPerItem) || 0,
       });
@@ -91,6 +112,8 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
+            // Restore stock when deleting sale
+            adjustProductStock(originalItemName, -originalQuantity);
             deleteSale(saleId);
             navigation.goBack();
           },

@@ -141,3 +141,79 @@ export const calculateSaleProfitMargin = (sale: Sale): number => {
   const profit = calculateSaleProfit(sale);
   return (profit / revenue) * 100;
 };
+
+/**
+ * Get revenue data grouped by day/week for charts
+ */
+export const getRevenueOverTime = (sales: Sale[], periodDays: number = 30): { labels: string[]; data: number[] } => {
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
+  
+  // Filter sales within the period
+  const recentSales = sales.filter(sale => new Date(sale.createdAt) >= cutoffDate);
+  
+  // Group by day
+  const dailyRevenue = new Map<string, number>();
+  
+  recentSales.forEach(sale => {
+    const date = new Date(sale.createdAt);
+    const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
+    const existing = dailyRevenue.get(dateKey) || 0;
+    dailyRevenue.set(dateKey, existing + (sale.quantity * sale.salePrice));
+  });
+  
+  // Create array of last N days
+  const labels: string[] = [];
+  const data: number[] = [];
+  
+  // Get the last 7 days for cleaner chart
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
+    labels.push(dateKey);
+    data.push(dailyRevenue.get(dateKey) || 0);
+  }
+  
+  return { labels, data };
+};
+
+/**
+ * Get top selling products ranked by quantity
+ */
+export const getTopSellingProducts = (sales: Sale[], limit: number = 5): { name: string; quantity: number; revenue: number }[] => {
+  const itemMap = new Map<string, { quantity: number; revenue: number }>();
+  
+  sales.forEach(sale => {
+    const existing = itemMap.get(sale.itemName) || { quantity: 0, revenue: 0 };
+    itemMap.set(sale.itemName, {
+      quantity: existing.quantity + sale.quantity,
+      revenue: existing.revenue + (sale.quantity * sale.salePrice),
+    });
+  });
+  
+  // Convert to array and sort by quantity
+  const items: { name: string; quantity: number; revenue: number }[] = [];
+  itemMap.forEach((data, name) => {
+    items.push({ name, ...data });
+  });
+  
+  return items
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, limit);
+};
+
+/**
+ * Get profit data for each event
+ */
+export const getProfitByEvent = (events: Event[], allSales: Sale[]): { name: string; profit: number; revenue: number }[] => {
+  return events.map(event => {
+    const eventSales = allSales.filter(sale => sale.eventId === event.id);
+    const stats = calculateEventStats(event, eventSales);
+    
+    return {
+      name: event.name.length > 12 ? event.name.substring(0, 12) + '...' : event.name,
+      profit: stats.netProfit,
+      revenue: stats.totalRevenue,
+    };
+  }).sort((a, b) => b.profit - a.profit);
+};

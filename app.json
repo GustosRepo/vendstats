@@ -24,6 +24,9 @@
         "backgroundColor": "#E8F1F8"
       },
       "package": "com.vendstats.app"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

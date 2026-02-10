@@ -106,6 +106,15 @@ export interface QuickSaleItem {
   stockCount?: number;  // How many we have
 }
 
+// App Settings
+export interface AppSettings {
+  lowStockThreshold: number;  // Alert when stock is at or below this number
+}
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  lowStockThreshold: 5,
+};
+
 // Storage Keys
 export const STORAGE_KEYS = {
   EVENTS: 'vendstats_events',

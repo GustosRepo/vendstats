@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
-import { Card, PrimaryButton, InputField, QuickSaleButton } from '../../../components';
+import { Card, PrimaryButton, QuickSaleButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { getQuickSaleItems, addQuickSaleItem, quickCreateSale, getEventById, updateQuickSaleItem } from '../../../storage';
+import { getQuickSaleItems, quickCreateSale, getEventById, updateQuickSaleItem } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
 import { colors } from '../../../theme';
@@ -18,19 +19,17 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   const { eventId } = route.params;
   
   const [quickItems, setQuickItems] = useState<QuickSaleItem[]>([]);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemPrice, setNewItemPrice] = useState('');
-  const [newItemCost, setNewItemCost] = useState('');
   const [recentSales, setRecentSales] = useState<{ name: string; price: number; qty: number }[]>([]);
   
   // Quantity picker state
   const [selectedItem, setSelectedItem] = useState<QuickSaleItem | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
-    loadQuickItems();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadQuickItems();
+    }, [])
+  );
 
   const loadQuickItems = () => {
     const allItems = getQuickSaleItems();
@@ -85,25 +84,6 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   const incrementQty = () => setQuantity(q => q + 1);
   const decrementQty = () => setQuantity(q => Math.max(1, q - 1));
 
-  const handleAddQuickItem = () => {
-    if (!newItemName.trim() || !newItemPrice) {
-      Alert.alert('Error', 'Please enter item name and price');
-      return;
-    }
-
-    addQuickSaleItem({
-      itemName: newItemName.trim(),
-      defaultPrice: parseFloat(newItemPrice) || 0,
-      defaultCost: parseFloat(newItemCost) || 0,
-    });
-
-    setNewItemName('');
-    setNewItemPrice('');
-    setNewItemCost('');
-    setShowAddForm(false);
-    loadQuickItems();
-  };
-
   const totalRecentSales = recentSales.reduce((sum, sale) => sum + sale.price, 0);
   const totalItemsSold = recentSales.reduce((sum, sale) => sum + sale.qty, 0);
 
@@ -143,9 +123,16 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
         )}
 
         {/* Quick Sale Buttons */}
-        <Text className="text-lg font-semibold text-neutral-900 mb-3">
-          Quick Sale
-        </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text className="text-lg font-semibold text-neutral-900">
+            Quick Sale
+          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('EditEventProducts', { eventId })}>
+            <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 14 }}>
+              Edit Products
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Text className="text-sm text-neutral-500 mb-4">
           Tap to log a sale instantly
         </Text>
@@ -176,66 +163,6 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
               />
             ))}
           </View>
-        )}
-
-        {/* Add Quick Item Form */}
-        {showAddForm ? (
-          <Card variant="elevated" padding="lg" className="mb-4">
-            <Text className="text-base font-semibold text-neutral-900 mb-4">
-              Add Quick Item
-            </Text>
-
-            <InputField
-              label="Item Name"
-              placeholder="e.g., Small Candle"
-              value={newItemName}
-              onChangeText={setNewItemName}
-              containerClassName="mb-3"
-            />
-
-            <InputField
-              label="Default Price ($)"
-              placeholder="0.00"
-              value={newItemPrice}
-              onChangeText={setNewItemPrice}
-              keyboardType="decimal-pad"
-              containerClassName="mb-3"
-            />
-
-            <InputField
-              label="Default Cost ($)"
-              placeholder="0.00"
-              value={newItemCost}
-              onChangeText={setNewItemCost}
-              keyboardType="decimal-pad"
-              containerClassName="mb-4"
-            />
-
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <PrimaryButton
-                  title="Cancel"
-                  variant="secondary"
-                  size="sm"
-                  onPress={() => setShowAddForm(false)}
-                />
-              </View>
-              <View className="flex-1">
-                <PrimaryButton
-                  title="Add"
-                  size="sm"
-                  onPress={handleAddQuickItem}
-                />
-              </View>
-            </View>
-          </Card>
-        ) : (
-          <TouchableOpacity
-            onPress={() => setShowAddForm(true)}
-            className="border-2 border-dashed border-neutral-300 rounded-xl p-4 items-center mb-6"
-          >
-            <Text className="text-neutral-500 font-medium">+ Add Quick Item</Text>
-          </TouchableOpacity>
         )}
 
         {/* Manual Entry Link */}

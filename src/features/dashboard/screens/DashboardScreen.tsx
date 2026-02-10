@@ -7,10 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { EmptyState } from '../../../components';
-import { getAllEvents, getAllSales } from '../../../storage';
+import { getAllEvents, getAllSales, getQuickSaleItems, getLowStockThreshold } from '../../../storage';
 import { calculateGlobalStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
-import { Event, GlobalStats } from '../../../types';
+import { Event, GlobalStats, QuickSaleItem } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
 import { MascotImages } from '../../../../assets';
 
@@ -189,11 +189,20 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
   const [events, setEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [eventProfits, setEventProfits] = useState<Record<string, number>>({});
+  const [lowStockItems, setLowStockItems] = useState<QuickSaleItem[]>([]);
 
   const loadData = useCallback(() => {
     const allEvents = getAllEvents();
     const allSales = getAllSales();
     const globalStats = calculateGlobalStats(allEvents, allSales);
+    
+    // Check for low stock items based on user's threshold setting
+    const threshold = getLowStockThreshold();
+    const allProducts = getQuickSaleItems();
+    const lowStock = allProducts.filter(p => 
+      p.stockCount !== undefined && p.stockCount <= threshold
+    ).sort((a, b) => (a.stockCount || 0) - (b.stockCount || 0));
+    setLowStockItems(lowStock);
     
     // Calculate profit per event
     const profits: Record<string, number> = {};
@@ -231,7 +240,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
       <TexturePattern />
       <ScrollView 
         showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 180 }}
       >
         {/* Header Section */}
         <View style={{ 
@@ -302,6 +311,85 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                 value={String(events.length)} 
               />
             </View>
+
+            {/* Low Stock Alert */}
+            {lowStockItems.length > 0 && (
+              <View style={{ marginBottom: 24 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="alert-circle" size={16} color={colors.danger || '#EF4444'} style={{ marginRight: 6 }} />
+                    <Text style={{ 
+                      fontSize: 11, 
+                      fontWeight: '600', 
+                      color: colors.danger || '#EF4444', 
+                      letterSpacing: 0.8, 
+                      textTransform: 'uppercase',
+                    }}>
+                      Low Stock Alert
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => navigation.navigate('Products')}>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={[{ 
+                  backgroundColor: colors.surface, 
+                  borderRadius: radius.xl, 
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                }, shadows.md]}>
+                  {lowStockItems.slice(0, 3).map((item, index) => (
+                    <View 
+                      key={item.id} 
+                      style={{ 
+                        flexDirection: 'row', 
+                        alignItems: 'center', 
+                        paddingVertical: 10,
+                        borderBottomWidth: index < Math.min(lowStockItems.length, 3) - 1 ? 1 : 0,
+                        borderBottomColor: colors.divider,
+                      }}
+                    >
+                      {item.imageUri ? (
+                        <Image 
+                          source={{ uri: item.imageUri }} 
+                          style={{ width: 40, height: 40, borderRadius: 8, marginRight: 12 }} 
+                        />
+                      ) : (
+                        <View style={{ 
+                          width: 40, height: 40, borderRadius: 8, 
+                          backgroundColor: colors.copper + '20', 
+                          alignItems: 'center', justifyContent: 'center', marginRight: 12 
+                        }}>
+                          <Ionicons name="cube-outline" size={20} color={colors.copper} />
+                        </View>
+                      )}
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
+                          {item.itemName}
+                        </Text>
+                      </View>
+                      <View style={{ 
+                        backgroundColor: (item.stockCount || 0) === 0 ? (colors.danger || '#EF4444') + '15' : '#FEF3C7',
+                        paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
+                      }}>
+                        <Text style={{ 
+                          fontSize: 13, 
+                          fontWeight: '700', 
+                          color: (item.stockCount || 0) === 0 ? (colors.danger || '#EF4444') : '#D97706',
+                        }}>
+                          {(item.stockCount || 0) === 0 ? 'Out of Stock' : `${item.stockCount} left`}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                  {lowStockItems.length > 3 && (
+                    <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingTop: 8 }}>
+                      +{lowStockItems.length - 3} more items low on stock
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
 
             {/* Recent Events Section */}
             {recentEvents.length > 0 && (

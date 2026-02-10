@@ -230,7 +230,7 @@ export const ProductsScreen: React.FC = () => {
           renderItem={renderProductItem}
           keyExtractor={(item) => item.id}
           numColumns={NUM_COLUMNS}
-          contentContainerStyle={{ padding: GRID_GAP / 2, paddingBottom: 100 }}
+          contentContainerStyle={{ padding: GRID_GAP / 2, paddingBottom: 160 }}
           showsVerticalScrollIndicator={false}
         />
       )}

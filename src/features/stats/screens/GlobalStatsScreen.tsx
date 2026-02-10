@@ -2,57 +2,17 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { EmptyState } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
 import { getAllEvents, getAllSales } from '../../../storage';
-import { calculateGlobalStats } from '../../../utils/calculations';
+import { calculateGlobalStats, getRevenueOverTime, getTopSellingProducts, getProfitByEvent } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
 import { GlobalStats } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
-
-// Executive line chart - minimal
-const ExecutiveChart: React.FC<{ data: number[]; height?: number; showGrowth?: boolean }> = ({ data, height = 100, showGrowth }) => {
-  const width = Dimensions.get('window').width - 88;
-  const padding = { top: 16, bottom: 16, left: 4, right: 4 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-
-  if (data.length < 2) return null;
-
-  const minValue = Math.min(...data) * 0.9;
-  const maxValue = Math.max(...data) * 1.05;
-  const range = maxValue - minValue || 1;
-
-  const points = data.map((value, index) => ({
-    x: padding.left + (index / (data.length - 1)) * chartWidth,
-    y: padding.top + chartHeight - ((value - minValue) / range) * chartHeight,
-  }));
-
-  let pathD = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1];
-    const curr = points[i];
-    const tension = 0.3;
-    const cp1x = prev.x + (curr.x - prev.x) * tension;
-    const cp2x = curr.x - (curr.x - prev.x) * tension;
-    pathD += ` C ${cp1x} ${prev.y}, ${cp2x} ${curr.y}, ${curr.x} ${curr.y}`;
-  }
-
-  const areaD = pathD + ` L ${points[points.length - 1].x} ${height - padding.bottom} L ${points[0].x} ${height - padding.bottom} Z`;
-  const lastPoint = points[points.length - 1];
-
-  return (
-    <Svg width={width} height={height}>
-      <Path d={areaD} fill={showGrowth ? colors.growthLight : colors.chartFill} />
-      <Path d={pathD} stroke={showGrowth ? colors.growth : colors.chartLine} strokeWidth={2} fill="none" strokeLinecap="round" />
-      <Circle cx={lastPoint.x} cy={lastPoint.y} r={3} fill={colors.surface} stroke={showGrowth ? colors.growth : colors.chartLine} strokeWidth={2} />
-    </Svg>
-  );
-};
 
 // Hero Metric Card
 const HeroMetricCard: React.FC<{
@@ -75,23 +35,15 @@ const StatCard: React.FC<{
   label: string;
   value: string;
   growth?: string;
-  data?: number[];
-}> = ({ label, value, growth, data }) => (
+}> = ({ label, value, growth }) => (
   <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 20 }, shadows.sm]}>
     <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textTertiary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
       {label}
     </Text>
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-      <View>
-        <Text style={{ fontSize: 28, fontWeight: '700', color: colors.textPrimary }}>{value}</Text>
-        {growth && (
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.growth, marginTop: 4 }}>{growth}</Text>
-        )}
-      </View>
-      {data && data.length >= 2 && (
-        <View style={{ marginLeft: 8 }}>
-          <ExecutiveChart data={data} height={50} showGrowth />
-        </View>
+    <View>
+      <Text style={{ fontSize: 28, fontWeight: '700', color: colors.textPrimary }}>{value}</Text>
+      {growth && (
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.growth, marginTop: 4 }}>{growth}</Text>
       )}
     </View>
   </View>
@@ -117,6 +69,11 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hasEvents, setHasEvents] = useState(false);
+  const [revenueData, setRevenueData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] });
+  const [topProducts, setTopProducts] = useState<{ name: string; quantity: number; revenue: number }[]>([]);
+  const [eventProfits, setEventProfits] = useState<{ name: string; profit: number; revenue: number }[]>([]);
+
+  const screenWidth = Dimensions.get('window').width - 48;
 
   const loadStats = useCallback(() => {
     const events = getAllEvents();
@@ -127,6 +84,11 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
     if (events.length > 0) {
       const globalStats = calculateGlobalStats(events, sales);
       setStats(globalStats);
+      
+      // Chart data
+      setRevenueData(getRevenueOverTime(sales, 30));
+      setTopProducts(getTopSellingProducts(sales, 5));
+      setEventProfits(getProfitByEvent(events, sales));
     }
   }, []);
 
@@ -175,7 +137,7 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
       <TexturePattern />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
@@ -252,7 +214,7 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
           )}
 
           {/* Insights */}
-          <View>
+          <View style={{ marginBottom: 24 }}>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
               Insights
             </Text>
@@ -274,6 +236,120 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
               )}
             </View>
           </View>
+
+          {/* Revenue Over Time Chart */}
+          {revenueData.data.some(d => d > 0) && (
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
+                Revenue This Week
+              </Text>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16, overflow: 'hidden' }, shadows.sm]}>
+                <LineChart
+                  data={{
+                    labels: revenueData.labels,
+                    datasets: [{ data: revenueData.data.map(d => d || 0) }],
+                  }}
+                  width={screenWidth - 32}
+                  height={180}
+                  yAxisLabel="$"
+                  yAxisSuffix=""
+                  chartConfig={{
+                    backgroundColor: colors.surface,
+                    backgroundGradientFrom: colors.surface,
+                    backgroundGradientTo: colors.surface,
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(27, 67, 50, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+                    style: { borderRadius: 16 },
+                    propsForDots: {
+                      r: '4',
+                      strokeWidth: '2',
+                      stroke: colors.primary,
+                    },
+                  }}
+                  bezier
+                  style={{ marginLeft: -8, borderRadius: 16 }}
+                />
+              </View>
+            </View>
+          )}
+
+          {/* Top Selling Products Chart */}
+          {topProducts.length > 0 && (
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
+                Top Selling Products
+              </Text>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16 }, shadows.sm]}>
+                {topProducts.map((product, index) => (
+                  <View 
+                    key={product.name} 
+                    style={{ 
+                      flexDirection: 'row', 
+                      alignItems: 'center', 
+                      paddingVertical: 12,
+                      borderBottomWidth: index < topProducts.length - 1 ? 1 : 0,
+                      borderBottomColor: colors.divider,
+                    }}
+                  >
+                    <View style={{ 
+                      width: 28, height: 28, borderRadius: 14, 
+                      backgroundColor: index === 0 ? colors.copper + '20' : colors.divider, 
+                      alignItems: 'center', justifyContent: 'center', marginRight: 12 
+                    }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: index === 0 ? colors.copper : colors.textSecondary }}>
+                        {index + 1}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
+                        {product.name}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                        {product.quantity} sold
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.growth }}>
+                      {formatCurrency(product.revenue)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Profit By Event Chart */}
+          {eventProfits.length > 1 && (
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
+                Profit By Event
+              </Text>
+              <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16, overflow: 'hidden' }, shadows.sm]}>
+                <BarChart
+                  data={{
+                    labels: eventProfits.slice(0, 5).map(e => e.name),
+                    datasets: [{ data: eventProfits.slice(0, 5).map(e => Math.max(0, e.profit)) }],
+                  }}
+                  width={screenWidth - 32}
+                  height={200}
+                  yAxisLabel="$"
+                  yAxisSuffix=""
+                  chartConfig={{
+                    backgroundColor: colors.surface,
+                    backgroundGradientFrom: colors.surface,
+                    backgroundGradientTo: colors.surface,
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(184, 115, 51, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+                    style: { borderRadius: 16 },
+                    barPercentage: 0.6,
+                  }}
+                  style={{ marginLeft: -8, borderRadius: 16 }}
+                  showValuesOnTopOfBars
+                />
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

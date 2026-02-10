@@ -21,8 +21,11 @@ export type RootStackParamList = {
   EditSale: { eventId: string; saleId: string };
   Paywall: undefined;
   QuickSale: { eventId: string };
+  EditEventProducts: { eventId: string };
   AddProduct: undefined;
   EditProduct: { productId: string };
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
 };
 
 // Screen props types

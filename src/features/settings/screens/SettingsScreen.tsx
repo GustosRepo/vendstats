@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Linking, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Linking, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,8 @@ import {
   getSubscriptionState, 
   hasPremiumAccess, 
   getRemainingTrialDays,
+  getLowStockThreshold,
+  setLowStockThreshold,
 } from '../../../storage';
 import { mmkvStorage } from '../../../storage/mmkv';
 import { getAllEvents, getAllSales } from '../../../storage';
@@ -91,12 +93,17 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
   const [subscription, setSubscription] = useState<SubscriptionState | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [trialDays, setTrialDays] = useState(0);
+  const [lowStockThreshold, setLowStockThresholdState] = useState(5);
+  const [showThresholdPicker, setShowThresholdPicker] = useState(false);
+
+  const thresholdOptions = [1, 2, 3, 5, 10, 15, 20];
 
   const loadSettings = useCallback(() => {
     const state = getSubscriptionState();
     setSubscription(state);
     setIsPremium(hasPremiumAccess());
     setTrialDays(getRemainingTrialDays());
+    setLowStockThresholdState(getLowStockThreshold());
   }, []);
 
   useFocusEffect(
@@ -191,7 +198,7 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
       <TexturePattern />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -199,7 +206,21 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
           <Text style={{ fontSize: 28, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.5 }}>Settings</Text>
         </View>
 
+        {/* Inventory Section */}
+        <SectionHeader title="Inventory" />
+        <SettingsCard>
+          <SettingsRow
+            icon="alert-circle-outline"
+            title="Low Stock Alert"
+            subtitle={`Notify when stock is ${lowStockThreshold} or less`}
+            value={String(lowStockThreshold)}
+            onPress={() => setShowThresholdPicker(true)}
+            isLast
+          />
+        </SettingsCard>
+
         {/* Subscription Section */}
+        <View style={{ marginTop: 24 }}>
         <SectionHeader title="Subscription" />
         <SettingsCard>
           <SettingsRow
@@ -217,6 +238,7 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
             </View>
           )}
         </SettingsCard>
+        </View>
 
         {/* Data Section */}
         <View style={{ marginTop: 24 }}>
@@ -254,12 +276,12 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
             <SettingsRow
               icon="shield-checkmark-outline"
               title="Privacy Policy"
-              onPress={() => {}}
+              onPress={() => navigation.navigate('PrivacyPolicy')}
             />
             <SettingsRow
               icon="document-outline"
               title="Terms of Service"
-              onPress={() => {}}
+              onPress={() => navigation.navigate('TermsOfService')}
               isLast
             />
           </SettingsCard>
@@ -276,6 +298,67 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
           <Text style={{ fontSize: 14, color: colors.textTertiary, marginTop: 4 }}>Track your pop-up profits</Text>
         </View>
       </ScrollView>
+
+      {/* Low Stock Threshold Picker Modal */}
+      <Modal
+        visible={showThresholdPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowThresholdPicker(false)}
+      >
+        <TouchableOpacity 
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+          activeOpacity={1}
+          onPress={() => setShowThresholdPicker(false)}
+        >
+          <View style={[{ backgroundColor: colors.surface, borderRadius: radius.xl, padding: 24, width: '80%', maxWidth: 320 }, shadows.lg]}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
+              Low Stock Alert
+            </Text>
+            <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 20 }}>
+              Show alert when stock reaches this number
+            </Text>
+            
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+              {thresholdOptions.map(option => (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => {
+                    setLowStockThreshold(option);
+                    setLowStockThresholdState(option);
+                    setShowThresholdPicker(false);
+                  }}
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 12,
+                    backgroundColor: lowStockThreshold === option ? colors.primary : colors.divider,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: 18,
+                    fontWeight: '700',
+                    color: lowStockThreshold === option ? 'white' : colors.textPrimary,
+                  }}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <TouchableOpacity
+              onPress={() => setShowThresholdPicker(false)}
+              style={{ marginTop: 20, paddingVertical: 12 }}
+            >
+              <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: '600', color: colors.textSecondary }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
