@@ -6,6 +6,7 @@ export interface Event {
   boothFee: number;
   travelCost: number;
   notes: string;
+  productIds?: string[]; // Products brought to this event
   createdAt: string;
   updatedAt: string;
 }
@@ -16,6 +17,7 @@ export interface CreateEventInput {
   boothFee: number;
   travelCost: number;
   notes?: string;
+  productIds?: string[];
 }
 
 export interface UpdateEventInput extends Partial<CreateEventInput> {

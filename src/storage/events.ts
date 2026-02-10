@@ -26,6 +26,7 @@ export const createEvent = (input: CreateEventInput): Event => {
     boothFee: input.boothFee,
     travelCost: input.travelCost,
     notes: input.notes || '',
+    productIds: input.productIds,
     createdAt: now,
     updatedAt: now,
   };

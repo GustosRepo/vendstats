@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton, InputField, QuickSaleButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { getQuickSaleItems, addQuickSaleItem, quickCreateSale } from '../../../storage';
+import { getQuickSaleItems, addQuickSaleItem, quickCreateSale, getEventById } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
 import { colors } from '../../../theme';
@@ -28,8 +28,16 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   }, []);
 
   const loadQuickItems = () => {
-    const items = getQuickSaleItems();
-    setQuickItems(items);
+    const allItems = getQuickSaleItems();
+    const event = getEventById(eventId);
+    
+    // Filter by event's selected products if set
+    if (event?.productIds && event.productIds.length > 0) {
+      const filtered = allItems.filter(item => event.productIds!.includes(item.id));
+      setQuickItems(filtered);
+    } else {
+      setQuickItems(allItems);
+    }
   };
 
   const handleQuickSale = (item: QuickSaleItem) => {

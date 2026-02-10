@@ -58,7 +58,6 @@ export const EditProductScreen: React.FC = () => {
     if (!hasPermission) return;
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -71,7 +70,6 @@ export const EditProductScreen: React.FC = () => {
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -246,7 +244,6 @@ export const EditProductScreen: React.FC = () => {
                 onChangeText={setCostPrice}
                 placeholder="0.00"
                 keyboardType="decimal-pad"
-                leftIcon="remove-circle-outline"
               />
             </View>
             <View className="flex-1">
@@ -256,7 +253,6 @@ export const EditProductScreen: React.FC = () => {
                 onChangeText={setSellPrice}
                 placeholder="0.00"
                 keyboardType="decimal-pad"
-                leftIcon="add-circle-outline"
               />
             </View>
           </View>
@@ -307,7 +303,7 @@ export const EditProductScreen: React.FC = () => {
             onChangeText={setStockCount}
             placeholder="How many do you have?"
             keyboardType="number-pad"
-            leftIcon="cube-outline"
+
           />
         </Card>
 

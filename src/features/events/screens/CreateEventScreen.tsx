@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { createEvent } from '../../../storage';
+import { createEvent, getQuickSaleItems } from '../../../storage';
+import { QuickSaleItem } from '../../../types';
 import { format } from 'date-fns';
 import { colors } from '../../../theme';
 
@@ -16,6 +18,33 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Product selection
+  const [allProducts, setAllProducts] = useState<QuickSaleItem[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const products = getQuickSaleItems();
+    setAllProducts(products);
+    // Select all by default
+    setSelectedProductIds(products.map(p => p.id));
+  }, []);
+
+  const toggleProduct = (productId: string) => {
+    setSelectedProductIds(prev => 
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const selectAllProducts = () => {
+    setSelectedProductIds(allProducts.map(p => p.id));
+  };
+
+  const deselectAllProducts = () => {
+    setSelectedProductIds([]);
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -54,6 +83,7 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
         boothFee: parseFloat(boothFee) || 0,
         travelCost: parseFloat(travelCost) || 0,
         notes: notes.trim(),
+        productIds: selectedProductIds.length > 0 ? selectedProductIds : undefined,
       });
 
       navigation.replace('EventDetail', { eventId: event.id });
@@ -134,7 +164,7 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
           </Card>
 
           {/* Notes Card */}
-          <Card variant="elevated" padding="lg" className="mb-6">
+          <Card variant="elevated" padding="lg" className="mb-4">
             <Text className="text-lg font-semibold text-neutral-900 mb-4">
               Notes (Optional)
             </Text>
@@ -147,6 +177,98 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
               numberOfLines={3}
             />
           </Card>
+
+          {/* Products Selection */}
+          {allProducts.length > 0 && (
+            <Card variant="elevated" padding="lg" className="mb-6">
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text className="text-lg font-semibold text-neutral-900">
+                  Products to Bring
+                </Text>
+                <TouchableOpacity 
+                  onPress={selectedProductIds.length === allProducts.length ? deselectAllProducts : selectAllProducts}
+                >
+                  <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 14 }}>
+                    {selectedProductIds.length === allProducts.length ? 'Deselect All' : 'Select All'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={{ color: colors.textSecondary, fontSize: 13, marginBottom: 16 }}>
+                {selectedProductIds.length} of {allProducts.length} products selected
+              </Text>
+
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {allProducts.map(product => {
+                  const isSelected = selectedProductIds.includes(product.id);
+                  return (
+                    <TouchableOpacity
+                      key={product.id}
+                      onPress={() => toggleProduct(product.id)}
+                      style={{
+                        width: 80,
+                        alignItems: 'center',
+                        opacity: isSelected ? 1 : 0.5,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 70,
+                          height: 70,
+                          borderRadius: 12,
+                          backgroundColor: product.imageUri ? undefined : colors.copper + '20',
+                          borderWidth: 3,
+                          borderColor: isSelected ? colors.primary : colors.divider,
+                          overflow: 'hidden',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        {product.imageUri ? (
+                          <Image
+                            source={{ uri: product.imageUri }}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Ionicons name="cube-outline" size={28} color={colors.copper} />
+                        )}
+                        
+                        {isSelected && (
+                          <View
+                            style={{
+                              position: 'absolute',
+                              top: -2,
+                              right: -2,
+                              backgroundColor: colors.primary,
+                              borderRadius: 10,
+                              width: 20,
+                              height: 20,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Ionicons name="checkmark" size={14} color="#fff" />
+                          </View>
+                        )}
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          color: colors.textSecondary,
+                          marginTop: 4,
+                          textAlign: 'center',
+                        }}
+                        numberOfLines={2}
+                      >
+                        {product.itemName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </Card>
+          )}
 
           {/* Actions */}
           <View className="flex-row gap-3">
