@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton, InputField, QuickSaleButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -21,7 +22,11 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
   const [newItemCost, setNewItemCost] = useState('');
-  const [recentSales, setRecentSales] = useState<{ name: string; price: number }[]>([]);
+  const [recentSales, setRecentSales] = useState<{ name: string; price: number; qty: number }[]>([]);
+  
+  // Quantity picker state
+  const [selectedItem, setSelectedItem] = useState<QuickSaleItem | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     loadQuickItems();
@@ -41,16 +46,29 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   };
 
   const handleQuickSale = (item: QuickSaleItem) => {
-    quickCreateSale(eventId, item.itemName, item.defaultPrice, item.defaultCost, 1);
+    // Open quantity picker
+    setSelectedItem(item);
+    setQuantity(1);
+  };
+
+  const confirmSale = () => {
+    if (!selectedItem) return;
+    
+    quickCreateSale(eventId, selectedItem.itemName, selectedItem.defaultPrice, selectedItem.defaultCost, quantity);
     
     // Add to recent sales for feedback
     setRecentSales(prev => [
-      { name: item.itemName, price: item.defaultPrice },
+      { name: selectedItem.itemName, price: selectedItem.defaultPrice * quantity, qty: quantity },
       ...prev.slice(0, 4),
     ]);
 
-    // Brief haptic feedback could be added here
+    // Close picker
+    setSelectedItem(null);
+    setQuantity(1);
   };
+
+  const incrementQty = () => setQuantity(q => q + 1);
+  const decrementQty = () => setQuantity(q => Math.max(1, q - 1));
 
   const handleAddQuickItem = () => {
     if (!newItemName.trim() || !newItemPrice) {
@@ -72,6 +90,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   };
 
   const totalRecentSales = recentSales.reduce((sum, sale) => sum + sale.price, 0);
+  const totalItemsSold = recentSales.reduce((sum, sale) => sum + sale.qty, 0);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
@@ -94,14 +113,14 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                   </Text>
                 </View>
               </View>
-              <Text className="text-neutral-400">{recentSales.length} sales</Text>
+              <Text className="text-neutral-400">{totalItemsSold} items</Text>
             </View>
             
             {/* Recent sales list */}
             <View className="mt-3 pt-3 border-t border-neutral-100">
               {recentSales.slice(0, 3).map((sale, index) => (
                 <Text key={index} className="text-sm text-neutral-500">
-                  + {sale.name} • {formatCurrency(sale.price)}
+                  + {sale.qty}x {sale.name} • {formatCurrency(sale.price)}
                 </Text>
               ))}
             </View>
@@ -222,6 +241,158 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
           onPress={() => navigation.goBack()}
         />
       </View>
+
+      {/* Quantity Picker Modal */}
+      <Modal
+        visible={selectedItem !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedItem(null)}
+      >
+        <TouchableOpacity 
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+          activeOpacity={1}
+          onPress={() => setSelectedItem(null)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={{ 
+              backgroundColor: colors.surface, 
+              borderRadius: 20, 
+              padding: 24, 
+              width: '85%',
+              maxWidth: 340,
+            }}
+          >
+            {selectedItem && (
+              <>
+                {/* Product Info */}
+                <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                  {selectedItem.imageUri ? (
+                    <Image
+                      source={{ uri: selectedItem.imageUri }}
+                      style={{ width: 80, height: 80, borderRadius: 12, marginBottom: 12 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={{ 
+                      width: 80, 
+                      height: 80, 
+                      borderRadius: 12, 
+                      backgroundColor: colors.copper + '20',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginBottom: 12,
+                    }}>
+                      <Ionicons name="cube-outline" size={36} color={colors.copper} />
+                    </View>
+                  )}
+                  <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary }}>
+                    {selectedItem.itemName}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
+                    {formatCurrency(selectedItem.defaultPrice)} each
+                  </Text>
+                </View>
+
+                {/* Quantity Picker */}
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  marginBottom: 20,
+                }}>
+                  <TouchableOpacity
+                    onPress={decrementQty}
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: 26,
+                      backgroundColor: quantity > 1 ? colors.primary + '15' : colors.divider,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Ionicons name="remove" size={28} color={quantity > 1 ? colors.primary : colors.textMuted} />
+                  </TouchableOpacity>
+                  
+                  <View style={{ 
+                    minWidth: 80, 
+                    alignItems: 'center',
+                    marginHorizontal: 16,
+                  }}>
+                    <Text style={{ 
+                      fontSize: 42, 
+                      fontWeight: '700', 
+                      color: colors.textPrimary,
+                    }}>
+                      {quantity}
+                    </Text>
+                  </View>
+                  
+                  <TouchableOpacity
+                    onPress={incrementQty}
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: 26,
+                      backgroundColor: colors.primary + '15',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Ionicons name="add" size={28} color={colors.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Total */}
+                <View style={{ 
+                  backgroundColor: colors.success + '15', 
+                  padding: 16, 
+                  borderRadius: 12,
+                  marginBottom: 20,
+                  alignItems: 'center',
+                }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                    TOTAL
+                  </Text>
+                  <Text style={{ fontSize: 28, fontWeight: '700', color: colors.success }}>
+                    {formatCurrency(selectedItem.defaultPrice * quantity)}
+                  </Text>
+                </View>
+
+                {/* Actions */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <TouchableOpacity
+                    onPress={() => setSelectedItem(null)}
+                    style={{
+                      flex: 1,
+                      padding: 16,
+                      borderRadius: 12,
+                      backgroundColor: colors.divider,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontWeight: '600', color: colors.textSecondary }}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={confirmSale}
+                    style={{
+                      flex: 1,
+                      padding: 16,
+                      borderRadius: 12,
+                      backgroundColor: colors.primary,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontWeight: '600', color: '#fff' }}>Log Sale</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
