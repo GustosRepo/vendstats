@@ -4,7 +4,13 @@
     "slug": "vendstats",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E8F1F8"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -14,7 +20,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#E8F1F8"
       },
       "package": "com.vendstats.app"
     }

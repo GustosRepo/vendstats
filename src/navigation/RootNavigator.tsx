@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { colors } from '../theme';
+import { hasSeenOnboarding, setOnboardingComplete } from '../storage';
 
 // Navigators
 import { TabNavigator } from './TabNavigator';
 
 // Screens
+import { OnboardingScreen } from '../features/onboarding/screens/OnboardingScreen';
 import { CreateEventScreen } from '../features/events/screens/CreateEventScreen';
 import { EditEventScreen } from '../features/events/screens/EditEventScreen';
 import { EventDetailScreen } from '../screens/EventDetailScreen';
@@ -19,6 +21,28 @@ import { PaywallScreen } from '../features/subscription/screens/PaywallScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const seen = hasSeenOnboarding();
+    setShowOnboarding(!seen);
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    setOnboardingComplete();
+    setShowOnboarding(false);
+  };
+
+  // Loading state
+  if (showOnboarding === null) {
+    return null;
+  }
+
+  // Show onboarding
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
