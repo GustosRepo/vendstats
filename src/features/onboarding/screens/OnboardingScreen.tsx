@@ -275,7 +275,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
             activeOpacity={0.9}
           >
             <Text style={styles.nextButtonText}>
-              {currentIndex === slides.length - 1 ? "Let's Go! 🚀" : 'Continue'}
+              {currentIndex === slides.length - 1 ? "Add My Products 🛍️" : 'Continue'}
             </Text>
           </TouchableOpacity>
         </Animated.View>

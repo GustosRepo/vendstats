@@ -211,13 +211,13 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                   fontSize: 14, 
                   color: colors.textSecondary,
                 }}>
-                  {hasEvents ? `${events.length} events tracked` : 'Get started'}
+                  {hasEvents ? `${events.length} events tracked` : !hasProducts ? 'Add products to start' : 'Get started'}
                 </Text>
               </View>
             </View>
             <PillButton 
-              label="New Event" 
-              onPress={() => navigation.navigate('CreateEvent')} 
+              label={!hasProducts ? "Add Product" : "New Event"} 
+              onPress={() => !hasProducts ? navigation.navigate('AddProduct') : navigation.navigate('CreateEvent')} 
             />
           </View>
         </View>
