@@ -158,18 +158,18 @@ export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation })
         </View>
 
         {/* Free tier indicator */}
-        {!isPremium && eventsCount > 0 && (
+        {!isPremium && eventsCount > 0 && remainingFreeEvents === 0 && (
           <View style={{ 
             marginTop: 16, 
-            backgroundColor: colors.surface, 
+            backgroundColor: colors.copper + '15', 
             borderRadius: radius.md, 
             paddingHorizontal: 16, 
             paddingVertical: 12,
             borderWidth: 1,
-            borderColor: colors.border,
+            borderColor: colors.copper + '30',
           }}>
-            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-              Free tier: {remainingFreeEvents} event{remainingFreeEvents !== 1 ? 's' : ''} remaining
+            <Text style={{ fontSize: 13, color: colors.copper, fontWeight: '500' }}>
+              Free event used • Upgrade to add more events
             </Text>
           </View>
         )}

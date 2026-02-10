@@ -1,6 +1,6 @@
 import { mmkvStorage } from './mmkv';
 import { SubscriptionState, STORAGE_KEYS } from '../types';
-import { TRIAL_DURATION_DAYS } from '../constants';
+import { TRIAL_DURATION_DAYS, FREE_TIER_LIMITS } from '../constants';
 
 const DEFAULT_SUBSCRIPTION_STATE: SubscriptionState = {
   status: 'none',
@@ -127,9 +127,8 @@ export const canCreateEvent = (currentEventCount: number): boolean => {
     return true;
   }
   
-  // Free users get 1 event
-  const FREE_EVENT_LIMIT = 1;
-  return currentEventCount < FREE_EVENT_LIMIT;
+  // Free users get limited events
+  return currentEventCount < FREE_TIER_LIMITS.MAX_EVENTS;
 };
 
 // Check if paywall should show for event creation

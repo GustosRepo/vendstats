@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { startFreeTrial, activateSubscription } from '../../../storage';
+import { activateSubscription } from '../../../storage';
 import { requestReviewIfAppropriate } from '../../../utils';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
@@ -36,7 +36,7 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     },
   };
 
-  const handleStartTrial = async () => {
+  const handleSubscribe = async () => {
     setLoading(true);
     
     try {
@@ -45,8 +45,8 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
       // const package = offerings.current?.availablePackages[0];
       // await Purchases.purchasePackage(package);
       
-      // For now, just start the local trial
-      startFreeTrial();
+      // For demo: activate subscription
+      activateSubscription();
       navigation.goBack();
     } catch (error) {
       console.error('Purchase error:', error);
@@ -107,10 +107,10 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             resizeMode="contain" 
           />
           <Text className="text-3xl font-bold text-neutral-900 text-center mb-2">
-            Your Free Event is Complete! 🎉
+            Ready to Keep Going? 💪
           </Text>
           <Text className="text-base text-neutral-500 text-center">
-            Upgrade to Pro for unlimited events and insights
+            You've completed your free event! Upgrade to Pro to track unlimited events and unlock all features.
           </Text>
         </View>
 
@@ -209,29 +209,12 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
           </TouchableOpacity>
         </View>
 
-        {/* Trial Info */}
-        <View className="px-6 mb-6">
-          <Card variant="outlined" padding="md">
-            <View className="flex-row items-center">
-              <Text className="text-2xl mr-3">🎁</Text>
-              <View className="flex-1">
-                <Text className="text-base font-semibold text-neutral-900">
-                  7-Day Free Trial
-                </Text>
-                <Text className="text-sm text-neutral-500">
-                  Try all features free. Cancel anytime.
-                </Text>
-              </View>
-            </View>
-          </Card>
-        </View>
-
         {/* CTA Button */}
         <View className="px-6 mb-4">
           <PrimaryButton
-            title="Start Free Trial"
+            title={`Subscribe ${selectedPlan === 'yearly' ? plans.yearly.price : plans.monthly.price}/${selectedPlan === 'yearly' ? 'year' : 'month'}`}
             size="lg"
-            onPress={handleStartTrial}
+            onPress={handleSubscribe}
             loading={loading}
           />
         </View>

@@ -43,7 +43,7 @@ export const layout = {
 
 // Free tier limits
 export const FREE_TIER_LIMITS = {
-  MAX_EVENTS: 3,
+  MAX_EVENTS: 1,
 } as const;
 
 // Trial duration in days
