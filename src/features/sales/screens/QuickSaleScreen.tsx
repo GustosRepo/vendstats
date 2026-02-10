@@ -129,6 +129,8 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                 itemName={item.itemName}
                 price={item.defaultPrice}
                 onPress={() => handleQuickSale(item)}
+                imageUri={item.imageUri}
+                stockCount={item.stockCount}
               />
             ))}
           </View>

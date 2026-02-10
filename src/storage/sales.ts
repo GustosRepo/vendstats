@@ -134,6 +134,20 @@ export const deleteQuickSaleItem = (id: string): boolean => {
   return true;
 };
 
+export const updateQuickSaleItem = (id: string, updates: Partial<Omit<QuickSaleItem, 'id'>>): QuickSaleItem | null => {
+  const items = getQuickSaleItems();
+  const index = items.findIndex(item => item.id === id);
+
+  if (index === -1) {
+    return null;
+  }
+
+  items[index] = { ...items[index], ...updates };
+  mmkvStorage.setJSON(STORAGE_KEYS.QUICK_ITEMS, items);
+
+  return items[index];
+};
+
 // Get sales count for event
 export const getSalesCountForEvent = (eventId: string): number => {
   return getSalesByEventId(eventId).length;

@@ -7,6 +7,7 @@ import { colors } from '../theme';
 // Screens
 import { DashboardScreen } from '../features/dashboard/screens/DashboardScreen';
 import { EventsScreen } from '../features/events/screens/EventsScreen';
+import { ProductsScreen } from '../features/products/screens/ProductsScreen';
 import { GlobalStatsScreen } from '../features/stats/screens/GlobalStatsScreen';
 import { SettingsScreen } from '../features/settings/screens/SettingsScreen';
 
@@ -16,6 +17,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 const tabIcons: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
   Dashboard: { active: 'grid', inactive: 'grid-outline' },
   Events: { active: 'calendar', inactive: 'calendar-outline' },
+  Products: { active: 'cube', inactive: 'cube-outline' },
   Stats: { active: 'stats-chart', inactive: 'stats-chart-outline' },
   Settings: { active: 'settings', inactive: 'settings-outline' },
 };
@@ -58,6 +60,11 @@ export const TabNavigator: React.FC = () => {
         name="Events" 
         component={EventsScreen}
         options={{ tabBarLabel: 'Events' }}
+      />
+      <Tab.Screen 
+        name="Products" 
+        component={ProductsScreen}
+        options={{ tabBarLabel: 'Products' }}
       />
       <Tab.Screen 
         name="Stats" 

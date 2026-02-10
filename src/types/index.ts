@@ -94,12 +94,14 @@ export interface PremiumFeatures {
   csvExport: boolean;
 }
 
-// Quick Sale Item (for fast entry)
+// Quick Sale Item (for fast entry) - now includes photo and stock
 export interface QuickSaleItem {
   id: string;
   itemName: string;
   defaultPrice: number;
   defaultCost: number;
+  imageUri?: string;    // Photo of the product
+  stockCount?: number;  // How many we have
 }
 
 // Storage Keys

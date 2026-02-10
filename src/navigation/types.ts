@@ -6,6 +6,7 @@ import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigat
 export type TabParamList = {
   Dashboard: undefined;
   Events: undefined;
+  Products: undefined;
   Stats: undefined;
   Settings: undefined;
 };
@@ -20,6 +21,8 @@ export type RootStackParamList = {
   EditSale: { eventId: string; saleId: string };
   Paywall: undefined;
   QuickSale: { eventId: string };
+  AddProduct: undefined;
+  EditProduct: { productId: string };
 };
 
 // Screen props types

@@ -16,6 +16,7 @@ import { EventDetailScreen } from '../features/events/screens/EventDetailScreen'
 import { AddSaleScreen } from '../features/sales/screens/AddSaleScreen';
 import { EditSaleScreen } from '../features/sales/screens/EditSaleScreen';
 import { QuickSaleScreen } from '../features/sales/screens/QuickSaleScreen';
+import { AddProductScreen, EditProductScreen } from '../features/products/screens';
 import { PaywallScreen } from '../features/subscription/screens/PaywallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -116,6 +117,23 @@ export const RootNavigator: React.FC = () => {
           options={{ 
             title: 'Quick Sale',
             presentation: 'modal',
+          }}
+        />
+        
+        <Stack.Screen
+          name="AddProduct"
+          component={AddProductScreen}
+          options={{ 
+            title: 'Add Product',
+            presentation: 'modal',
+          }}
+        />
+        
+        <Stack.Screen
+          name="EditProduct"
+          component={EditProductScreen}
+          options={{ 
+            title: 'Edit Product',
           }}
         />
         

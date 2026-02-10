@@ -44,6 +44,9 @@ export const colors = {
   success: '#B87333',
   successLight: 'rgba(184, 115, 51, 0.10)',
 
+  error: '#8B2C2C',
+  errorLight: 'rgba(139, 44, 44, 0.08)',
+  
   danger: '#8B2C2C',
   dangerLight: 'rgba(139, 44, 44, 0.08)',
 
