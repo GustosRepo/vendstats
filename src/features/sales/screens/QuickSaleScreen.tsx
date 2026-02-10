@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton, InputField, QuickSaleButton } from '../../../components';
@@ -8,6 +8,7 @@ import { getQuickSaleItems, addQuickSaleItem, quickCreateSale } from '../../../s
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
 import { colors } from '../../../theme';
+import { MascotImages } from '../../../../assets';
 
 export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   navigation,
@@ -72,11 +73,18 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
         {recentSales.length > 0 && (
           <Card variant="elevated" padding="md" className="mb-6">
             <View className="flex-row justify-between items-center">
-              <View>
-                <Text className="text-xs text-neutral-500">SESSION TOTAL</Text>
-                <Text className="text-2xl font-bold text-green-600">
-                  {formatCurrency(totalRecentSales)}
-                </Text>
+              <View className="flex-row items-center">
+                <Image 
+                  source={MascotImages.celebrate2} 
+                  style={{ width: 48, height: 48, marginRight: 12 }} 
+                  resizeMode="contain" 
+                />
+                <View>
+                  <Text className="text-xs text-neutral-500">SESSION TOTAL</Text>
+                  <Text className="text-2xl font-bold text-green-600">
+                    {formatCurrency(totalRecentSales)}
+                  </Text>
+                </View>
               </View>
               <Text className="text-neutral-400">{recentSales.length} sales</Text>
             </View>
@@ -102,9 +110,16 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
 
         {quickItems.length === 0 ? (
           <Card variant="outlined" padding="lg" className="mb-4">
-            <Text className="text-center text-neutral-500">
-              No quick sale items yet. Add your most common products for 1-tap sales.
-            </Text>
+            <View className="items-center py-2">
+              <Image 
+                source={MascotImages.lookPhone} 
+                style={{ width: 80, height: 80, marginBottom: 12 }} 
+                resizeMode="contain" 
+              />
+              <Text className="text-center text-neutral-500">
+                No quick sale items yet. Add your most common products for 1-tap sales.
+              </Text>
+            </View>
           </Card>
         ) : (
           <View className="flex-row flex-wrap gap-3 mb-6">

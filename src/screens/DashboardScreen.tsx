@@ -1,8 +1,9 @@
 import React from 'react';
-import { ScrollView, View, Text, Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Dimensions, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop, Circle, Pattern, Line, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, shadows, radius } from '../theme';
+import { MascotImages } from '../../assets';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -253,26 +254,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         {/* Header Section */}
         <View style={{ 
           paddingHorizontal: 24, 
-          paddingTop: 72, 
+          paddingTop: 60, 
           paddingBottom: 28,
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <View>
-              <Text style={{ 
-                fontSize: 32, 
-                fontWeight: '700', 
-                color: colors.textPrimary, 
-                letterSpacing: -0.5,
-                marginBottom: 4,
-              }}>
-                Your Hustle
-              </Text>
-              <Text style={{ 
-                fontSize: 15, 
-                color: colors.textSecondary,
-              }}>
-                This Month Overview
-              </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image 
+                source={MascotImages.wink} 
+                style={{ width: 56, height: 56, marginRight: 12 }} 
+                resizeMode="contain" 
+              />
+              <View>
+                <Text style={{ 
+                  fontSize: 28, 
+                  fontWeight: '700', 
+                  color: colors.textPrimary, 
+                  letterSpacing: -0.5,
+                  marginBottom: 2,
+                }}>
+                  Your Hustle
+                </Text>
+                <Text style={{ 
+                  fontSize: 14, 
+                  color: colors.textSecondary,
+                }}>
+                  This Month Overview
+                </Text>
+              </View>
             </View>
             <PillButton 
               label="New Event" 

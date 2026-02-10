@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, Dimensions } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { EmptyState } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
+import { MascotImages } from '../../../../assets';
 import { getAllEvents, getAllSales } from '../../../storage';
 import { calculateGlobalStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
@@ -153,7 +154,7 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
           message="Create events and log sales to see your global statistics."
           actionLabel="Create Event"
           onAction={() => navigation.navigate('CreateEvent')}
-          icon={<Ionicons name="stats-chart-outline" size={48} color={colors.textTertiary} />}
+          icon={<Image source={MascotImages.phone} style={{ width: 120, height: 120 }} resizeMode="contain" />}
         />
       </SafeAreaView>
     );

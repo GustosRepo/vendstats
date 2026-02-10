@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
+import { MascotImages } from '../../../../assets';
 import { 
   getSubscriptionState, 
   hasPremiumAccess, 
@@ -266,17 +267,11 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
 
         {/* App Branding */}
         <View style={{ alignItems: 'center', paddingTop: 40, paddingBottom: 20 }}>
-          <View style={{ 
-            width: 56, 
-            height: 56, 
-            borderRadius: 16, 
-            backgroundColor: colors.primary, 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            marginBottom: 12,
-          }}>
-            <Ionicons name="stats-chart" size={28} color="#FFFFFF" />
-          </View>
+          <Image 
+            source={MascotImages.smile} 
+            style={{ width: 80, height: 80, marginBottom: 12 }} 
+            resizeMode="contain" 
+          />
           <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>VendStats</Text>
           <Text style={{ fontSize: 14, color: colors.textTertiary, marginTop: 4 }}>Track your pop-up profits</Text>
         </View>

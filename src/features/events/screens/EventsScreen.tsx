@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { EmptyState } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
+import { MascotImages } from '../../../../assets';
 import { getEventsSortedByDate, getSalesByEventId, getEventsCount } from '../../../storage';
 import { hasPremiumAccess, hasCreatedFirstEvent } from '../../../storage';
 import { calculateEventStats } from '../../../utils/calculations';
@@ -176,7 +177,7 @@ export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation })
           message="Create your first event to start tracking revenue and profit from your pop-up sales."
           actionLabel="Create Event"
           onAction={handleCreateEvent}
-          icon={<Ionicons name="calendar-outline" size={48} color={colors.textTertiary} />}
+          icon={<Image source={MascotImages.celebrate} style={{ width: 120, height: 120 }} resizeMode="contain" />}
         />
       ) : (
         <FlatList

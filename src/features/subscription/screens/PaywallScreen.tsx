@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { startFreeTrial, activateSubscription } from '../../../storage';
 import { colors } from '../../../theme';
+import { MascotImages } from '../../../../assets';
 // import Purchases from 'react-native-purchases';
 
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
@@ -90,7 +91,11 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
 
         {/* Header */}
         <View className="items-center pt-12 pb-8 px-6">
-          <Text className="text-5xl mb-4">✨</Text>
+          <Image 
+            source={MascotImages.celebrate} 
+            style={{ width: 120, height: 120, marginBottom: 8 }} 
+            resizeMode="contain" 
+          />
           <Text className="text-3xl font-bold text-neutral-900 text-center mb-2">
             Unlock VendStats Pro
           </Text>

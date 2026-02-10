@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, FlatList, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackScreenProps } from '../../../navigation/types';
@@ -11,6 +11,7 @@ import { formatCurrency } from '../../../utils/currency';
 import { Event, Sale, EventStats } from '../../../types';
 import { format } from 'date-fns';
 import { colors } from '../../../theme';
+import { MascotImages } from '../../../../assets';
 
 export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = ({
   navigation,
@@ -223,9 +224,16 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
 
           {sales.length === 0 ? (
             <Card variant="outlined" padding="lg">
-              <Text className="text-center text-neutral-500">
-                No sales yet. Tap "Add" to log your first sale.
-              </Text>
+              <View className="items-center py-2">
+                <Image 
+                  source={MascotImages.winkPhone} 
+                  style={{ width: 80, height: 80, marginBottom: 12 }} 
+                  resizeMode="contain" 
+                />
+                <Text className="text-center text-neutral-500">
+                  No sales yet. Tap "Add" to log your first sale.
+                </Text>
+              </View>
             </Card>
           ) : (
             sales.map((sale) => (

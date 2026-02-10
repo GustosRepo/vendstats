@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Image,
+  ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Stop, Rect, Pattern, Line } from 'react-native-svg';
+import Svg, { Defs, Rect, Pattern, Line } from 'react-native-svg';
 import { colors, radius } from '../../../theme';
+import { MascotImages } from '../../../../assets';
 
 const { width, height } = Dimensions.get('window');
 
@@ -17,8 +20,7 @@ interface OnboardingSlide {
   id: string;
   title: string;
   subtitle: string;
-  emoji: string;
-  gradientColors: [string, string];
+  mascot: ImageSourcePropType;
 }
 
 const slides: OnboardingSlide[] = [
@@ -26,29 +28,25 @@ const slides: OnboardingSlide[] = [
     id: '1',
     title: 'Track Every Sale',
     subtitle: 'Log sales in seconds at any pop-up event',
-    emoji: '💰',
-    gradientColors: ['#E8F1F8', '#DCE8F2'],
+    mascot: MascotImages.tent,
   },
   {
     id: '2',
     title: 'Know Your Profit',
     subtitle: 'See exactly what you make after costs',
-    emoji: '📊',
-    gradientColors: ['#E8F1F8', '#D4E4ED'],
+    mascot: MascotImages.happyPhone,
   },
   {
     id: '3',
     title: 'Event Insights',
     subtitle: 'Discover which events make you the most money',
-    emoji: '🎯',
-    gradientColors: ['#E8F1F8', '#DCE8F2'],
+    mascot: MascotImages.lookPhone,
   },
   {
     id: '4',
     title: 'Built for Vendors',
     subtitle: 'Designed by hustlers, for hustlers',
-    emoji: '🚀',
-    gradientColors: ['#E8F1F8', '#D4E4ED'],
+    mascot: MascotImages.tent2,
   },
 ];
 
@@ -95,8 +93,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     <View style={styles.slide}>
       {/* Content */}
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Text style={styles.iconEmoji}>{item.emoji}</Text>
+        <View style={styles.mascotContainer}>
+          <Image source={item.mascot} style={styles.mascotImage} resizeMode="contain" />
         </View>
         
         <Text style={styles.title}>{item.title}</Text>
@@ -194,22 +192,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 100,
   },
-  iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.surface,
+  mascotContainer: {
+    width: 200,
+    height: 200,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    marginBottom: 40,
   },
-  iconEmoji: {
-    fontSize: 44,
+  mascotImage: {
+    width: 180,
+    height: 180,
   },
   title: {
     fontSize: 32,
