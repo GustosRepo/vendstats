@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation';
 import { initializeStorage } from './src/storage/mmkv';
-// import Purchases from 'react-native-purchases';
+import { initializeRevenueCat, addCustomerInfoUpdateListener } from './src/services/revenuecat';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -14,6 +14,13 @@ export default function App() {
     const init = async () => {
       // Initialize storage cache
       await initializeStorage();
+      
+      // Initialize RevenueCat
+      await initializeRevenueCat();
+      
+      // Set up subscription listener
+      addCustomerInfoUpdateListener();
+      
       setIsReady(true);
     };
 

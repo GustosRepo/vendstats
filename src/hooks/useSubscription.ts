@@ -10,6 +10,7 @@ import {
   shouldShowPaywall,
   hasCreatedFirstEvent,
 } from '../storage';
+import { checkSubscriptionStatus } from '../services/revenuecat';
 import { SubscriptionState } from '../types';
 
 /**
@@ -20,8 +21,13 @@ export const useSubscription = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadSubscription = useCallback(() => {
+  const loadSubscription = useCallback(async () => {
     setLoading(true);
+    
+    // Check remote subscription status first
+    await checkSubscriptionStatus();
+    
+    // Get updated local state
     const state = getSubscriptionState();
     setSubscription(state);
     setIsPremium(hasPremiumAccess());

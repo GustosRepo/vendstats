@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Linking, Image, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Linking, Image, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
@@ -136,27 +138,59 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
     const events = getAllEvents();
     const sales = getAllSales();
 
-    let csv = 'Event Name,Event Date,Booth Fee,Travel Cost,Item Name,Quantity,Sale Price,Cost Per Item,Revenue,Profit\n';
+    if (events.length === 0) {
+      Alert.alert('No Data', 'You don\'t have any events to export yet.');
+      return;
+    }
 
-    events.forEach(event => {
-      const eventSales = sales.filter(s => s.eventId === event.id);
+    try {
+      // Create CSV content
+      let csv = 'Event Name,Event Date,Booth Fee,Travel Cost,Item Name,Quantity,Sale Price,Cost Per Item,Revenue,Profit\n';
+
+      events.forEach(event => {
+        const eventSales = sales.filter(s => s.eventId === event.id);
+        
+        if (eventSales.length === 0) {
+          csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},,,,,,\n`;
+        } else {
+          eventSales.forEach(sale => {
+            const revenue = sale.quantity * sale.salePrice;
+            const profit = revenue - (sale.quantity * sale.costPerItem);
+            csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},"${sale.itemName}",${sale.quantity},${sale.salePrice},${sale.costPerItem},${revenue},${profit}\n`;
+          });
+        }
+      });
+
+      // Create file name with date
+      const date = new Date().toISOString().split('T')[0];
+      const fileName = `vendstats-export-${date}.csv`;
+      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Write file
+      await FileSystem.writeAsStringAsync(filePath, csv, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Check if sharing is available
+      const isSharingAvailable = await Sharing.isAvailableAsync();
       
-      if (eventSales.length === 0) {
-        csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},,,,,,\n`;
-      } else {
-        eventSales.forEach(sale => {
-          const revenue = sale.quantity * sale.salePrice;
-          const profit = revenue - (sale.quantity * sale.costPerItem);
-          csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},"${sale.itemName}",${sale.quantity},${sale.salePrice},${sale.costPerItem},${revenue},${profit}\n`;
+      if (isSharingAvailable) {
+        await Sharing.shareAsync(filePath, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Export VendStats Data',
+          UTI: 'public.comma-separated-values-text',
         });
+      } else {
+        Alert.alert(
+          'Export Complete',
+          `CSV file saved to: ${fileName}\n\nSharing is not available on this device.`,
+          [{ text: 'OK' }]
+        );
       }
-    });
-
-    Alert.alert(
-      'Export CSV',
-      'CSV export would be saved to your device. This feature requires expo-sharing and expo-file-system to be fully implemented.',
-      [{ text: 'OK' }]
-    );
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Export Failed', 'Unable to export data. Please try again.');
+    }
   };
 
   const handleResetData = () => {

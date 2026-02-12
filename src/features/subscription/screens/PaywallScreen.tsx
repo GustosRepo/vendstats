@@ -1,21 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { activateSubscription } from '../../../storage';
 import { requestReviewIfAppropriate } from '../../../utils';
+import { getOfferings, purchasePackage, restorePurchases, MockOffering, MockPackage } from '../../../services/revenuecat';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
-// import Purchases from 'react-native-purchases';
 
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+  const [offerings, setOfferings] = useState<MockOffering | null>(null);
+  const [packages, setPackages] = useState<{ monthly?: MockPackage; yearly?: MockPackage }>({});
 
-  // Request review when paywall is shown (user completed free event)
+  // Load offerings and request review
   useEffect(() => {
+    const loadData = async () => {
+      // Load RevenueCat offerings
+      const currentOffering = await getOfferings();
+      console.log('PaywallScreen - Offerings loaded:', {
+        hasOffering: !!currentOffering,
+        packagesCount: currentOffering?.availablePackages?.length || 0,
+        packageIdentifiers: currentOffering?.availablePackages?.map(p => p.identifier) || []
+      });
+      
+      if (currentOffering) {
+        setOfferings(currentOffering);
+        
+        // Map packages by identifier - try multiple matching strategies
+        const packageMap: { monthly?: MockPackage; yearly?: MockPackage } = {};
+        currentOffering.availablePackages.forEach(pkg => {
+          console.log('Checking package:', {
+            identifier: pkg.identifier,
+            productId: pkg.product.identifier,
+            title: pkg.product.title,
+            priceString: pkg.product.priceString
+          });
+          
+          // Match our configured products directly
+          if (pkg.product.identifier === 'monthly' || pkg.identifier.includes('monthly')) {
+            packageMap.monthly = pkg;
+          } else if (pkg.product.identifier === 'yearly' || pkg.identifier.includes('yearly')) {
+            packageMap.yearly = pkg;
+          }
+        });
+        
+        console.log('Mapped packages:', {
+          hasMonthly: !!packageMap.monthly,
+          hasYearly: !!packageMap.yearly,
+          monthlyId: packageMap.monthly?.product.identifier,
+          yearlyId: packageMap.yearly?.product.identifier
+        });
+        
+        setPackages(packageMap);
+      }
+    };
+    
+    loadData();
+    
     // Delay review request to let user see the paywall first
     const timer = setTimeout(() => {
       requestReviewIfAppropriate();
@@ -23,14 +67,15 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     return () => clearTimeout(timer);
   }, []);
 
+  // Get pricing from packages or fallback to hardcoded
   const plans = {
     monthly: {
-      price: '$4.99',
+      price: packages.monthly?.product?.priceString || '$4.99',
       period: 'month',
       savings: null,
     },
     yearly: {
-      price: '$29.99',
+      price: packages.yearly?.product?.priceString || '$29.99', 
       period: 'year',
       savings: 'Save 50%',
     },
@@ -40,16 +85,29 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     setLoading(true);
     
     try {
-      // In production, this would initiate RevenueCat purchase
-      // const offerings = await Purchases.getOfferings();
-      // const package = offerings.current?.availablePackages[0];
-      // await Purchases.purchasePackage(package);
+      // Get the selected package
+      const selectedPackage = selectedPlan === 'yearly' ? packages.yearly : packages.monthly;
       
-      // For demo: activate subscription
-      activateSubscription();
-      navigation.goBack();
+      if (!selectedPackage) {
+        // Fallback to mock for development
+        console.warn('No RevenueCat package available, using mock subscription');
+        const { activateSubscription } = await import('../../../storage');
+        activateSubscription();
+        navigation.goBack();
+        return;
+      }
+      
+      // Purchase with RevenueCat
+      const result = await purchasePackage(selectedPackage);
+      
+      if (result.success) {
+        navigation.goBack();
+      } else if (result.error && !result.error.userCancelled) {
+        Alert.alert('Purchase Failed', 'Unable to complete purchase. Please try again.');
+      }
     } catch (error) {
       console.error('Purchase error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,18 +117,17 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     setLoading(true);
     
     try {
-      // In production:
-      // const customerInfo = await Purchases.restorePurchases();
-      // if (customerInfo.entitlements.active['premium']) {
-      //   activateSubscription();
-      //   navigation.goBack();
-      // }
+      const result = await restorePurchases();
       
-      // For demo:
-      activateSubscription();
-      navigation.goBack();
+      if (result.success && result.hasActiveSubscription) {
+        Alert.alert('Restored!', 'Your subscription has been restored.');
+        navigation.goBack();
+      } else {
+        Alert.alert('No Purchases', 'No active subscription found.');
+      }
     } catch (error) {
       console.error('Restore error:', error);
+      Alert.alert('Error', 'Unable to restore purchases. Please try again.');
     } finally {
       setLoading(false);
     }
