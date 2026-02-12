@@ -1,6 +1,7 @@
 import { mmkvStorage } from './mmkv';
 import { SubscriptionState, STORAGE_KEYS } from '../types';
 import { TRIAL_DURATION_DAYS, FREE_TIER_LIMITS } from '../constants';
+import { getTotalUsedEventsCount } from './sales';
 
 const DEFAULT_SUBSCRIPTION_STATE: SubscriptionState = {
   status: 'none',
@@ -125,6 +126,12 @@ export const canCreateEvent = (currentEventCount: number): boolean => {
   // Premium users can create unlimited events
   if (hasPremiumAccess()) {
     return true;
+  }
+  
+  // Check if user has already used their free event (even if deleted)
+  const usedEventsCount = getTotalUsedEventsCount();
+  if (usedEventsCount >= FREE_TIER_LIMITS.MAX_EVENTS) {
+    return false;
   }
   
   // Free users get limited events

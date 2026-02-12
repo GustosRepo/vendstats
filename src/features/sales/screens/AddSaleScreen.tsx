@@ -6,6 +6,7 @@ import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { createSale } from '../../../storage';
+import { trackEventCompletedForReview } from '../../../utils';
 import { colors } from '../../../theme';
 
 export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({ 
@@ -62,6 +63,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      trackEventCompletedForReview();
       navigation.goBack();
     } catch (error) {
       Alert.alert('Error', 'Failed to add sale. Please try again.');

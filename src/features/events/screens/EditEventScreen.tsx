@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { getEventById, updateEvent, deleteEvent, deleteAllSalesForEvent } from '../../../storage';
+import { getEventById, updateEvent, deleteEvent, deleteAllSalesForEvent, eventHasSales } from '../../../storage';
 import { colors } from '../../../theme';
 
 export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({ 
@@ -20,6 +20,7 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     const event = getEventById(eventId);
@@ -29,6 +30,8 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
       setBoothFee(event.boothFee.toString());
       setTravelCost(event.travelCost.toString());
       setNotes(event.notes);
+      // Lock name/date if event has sales logged
+      setIsLocked(eventHasSales(eventId));
     } else {
       Alert.alert('Error', 'Event not found');
       navigation.goBack();
@@ -120,6 +123,14 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
               Event Details
             </Text>
 
+            {isLocked && (
+              <View className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <Text className="text-amber-800 text-sm">
+                  Event name and date are locked because sales have been logged.
+                </Text>
+              </View>
+            )}
+
             <InputField
               label="Event Name"
               placeholder="e.g., Farmers Market Downtown"
@@ -127,6 +138,8 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
               onChangeText={setName}
               error={errors.name}
               containerClassName="mb-4"
+              editable={!isLocked}
+              style={isLocked ? { color: '#9ca3af' } : undefined}
             />
 
             <InputField
@@ -136,6 +149,8 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
               onChangeText={setDate}
               error={errors.date}
               keyboardType="numeric"
+              editable={!isLocked}
+              style={isLocked ? { color: '#9ca3af' } : undefined}
             />
           </Card>
 

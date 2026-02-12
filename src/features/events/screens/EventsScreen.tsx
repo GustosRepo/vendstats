@@ -8,7 +8,7 @@ import { EmptyState } from '../../../components';
 import { PressableScale, AnimatedListItem } from '../../../components/animations';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
-import { getEventsSortedByDate, getSalesByEventId, getEventsCount } from '../../../storage';
+import { getEventsSortedByDate, getSalesByEventId, getEventsCount, getTotalUsedEventsCount } from '../../../storage';
 import { hasPremiumAccess, hasCreatedFirstEvent } from '../../../storage';
 import { calculateEventStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
@@ -94,8 +94,16 @@ export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation })
 
   const handleCreateEvent = () => {
     const eventCount = getEventsCount();
+    const usedEventsCount = getTotalUsedEventsCount();
     const isPremium = hasPremiumAccess();
 
+    // Block if user has already used their free event (even if deleted)
+    if (usedEventsCount >= FREE_TIER_LIMITS.MAX_EVENTS && !isPremium) {
+      navigation.navigate('Paywall');
+      return;
+    }
+
+    // Block if user already has an event (hasn't used it yet but can't create more)
     if (eventCount >= FREE_TIER_LIMITS.MAX_EVENTS && !isPremium && hasCreatedFirstEvent()) {
       navigation.navigate('Paywall');
       return;

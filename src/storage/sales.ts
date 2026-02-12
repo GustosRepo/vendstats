@@ -14,6 +14,34 @@ export const getSalesByEventId = (eventId: string): Sale[] => {
   return sales.filter(sale => sale.eventId === eventId);
 };
 
+// Check if an event has any sales logged
+export const eventHasSales = (eventId: string): boolean => {
+  const sales = getAllSales();
+  return sales.some(sale => sale.eventId === eventId);
+};
+
+// Get count of events that have been "used" (have sales logged)
+export const getUsedEventsCount = (eventIds: string[]): number => {
+  const sales = getAllSales();
+  const eventsWithSales = new Set(sales.map(sale => sale.eventId));
+  return eventIds.filter(id => eventsWithSales.has(id)).length;
+};
+
+// Mark event as used (persists even if event is deleted)
+const markEventAsUsed = (eventId: string): void => {
+  const usedEvents = mmkvStorage.getJSON<string[]>(STORAGE_KEYS.EVENTS_WITH_SALES) || [];
+  if (!usedEvents.includes(eventId)) {
+    usedEvents.push(eventId);
+    mmkvStorage.setJSON(STORAGE_KEYS.EVENTS_WITH_SALES, usedEvents);
+  }
+};
+
+// Get total count of events ever used (persists through deletion)
+export const getTotalUsedEventsCount = (): number => {
+  const usedEvents = mmkvStorage.getJSON<string[]>(STORAGE_KEYS.EVENTS_WITH_SALES) || [];
+  return usedEvents.length;
+};
+
 // Get single sale by ID
 export const getSaleById = (id: string): Sale | null => {
   const sales = getAllSales();
@@ -24,6 +52,12 @@ export const getSaleById = (id: string): Sale | null => {
 export const createSale = (input: CreateSaleInput): Sale => {
   const sales = getAllSales();
   const now = new Date().toISOString();
+
+  // Track if this is the first sale for this event (marks event as "used")
+  const isFirstSaleForEvent = !sales.some(s => s.eventId === input.eventId);
+  if (isFirstSaleForEvent) {
+    markEventAsUsed(input.eventId);
+  }
 
   const newSale: Sale = {
     id: uuidv4(),

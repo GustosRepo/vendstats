@@ -123,4 +123,6 @@ export const STORAGE_KEYS = {
   SUBSCRIPTION: 'vendstats_subscription',
   SETTINGS: 'vendstats_settings',
   FIRST_EVENT_CREATED: 'vendstats_first_event_created',
+  USED_EVENTS_COUNT: 'vendstats_used_events_count',
+  EVENTS_WITH_SALES: 'vendstats_events_with_sales',
 } as const;

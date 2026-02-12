@@ -10,6 +10,7 @@ import { TexturePattern } from '../../../components/TexturePattern';
 import { getQuickSaleItems, quickCreateSale, getEventById, updateQuickSaleItem } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
+import { trackEventCompletedForReview } from '../../../utils';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
 
@@ -58,6 +59,9 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
     
     // Success haptic feedback
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
+    // Track for review prompt
+    trackEventCompletedForReview();
     
     // Update stock count if tracking inventory
     if (selectedItem.stockCount !== undefined) {
