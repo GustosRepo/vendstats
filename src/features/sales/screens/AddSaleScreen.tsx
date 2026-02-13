@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
@@ -14,6 +15,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
   route 
 }) => {
   const { eventId } = route.params;
+  const headerHeight = useHeaderHeight();
   
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -112,10 +114,11 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
+        keyboardVerticalOffset={headerHeight}
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Item Details */}

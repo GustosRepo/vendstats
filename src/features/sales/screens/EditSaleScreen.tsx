@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -12,6 +13,7 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
   route 
 }) => {
   const { saleId } = route.params;
+  const headerHeight = useHeaderHeight();
   
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -135,10 +137,11 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
+        keyboardVerticalOffset={headerHeight}
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Item Details */}

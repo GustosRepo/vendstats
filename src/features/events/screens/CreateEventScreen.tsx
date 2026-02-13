@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
@@ -11,6 +12,7 @@ import { format } from 'date-fns';
 import { colors } from '../../../theme';
 
 export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = ({ navigation }) => {
+  const headerHeight = useHeaderHeight();
   const [name, setName] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [boothFee, setBoothFee] = useState('');
@@ -112,10 +114,11 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
+        keyboardVerticalOffset={headerHeight}
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Event Info Card */}

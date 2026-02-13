@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +19,7 @@ export const EditProductScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RouteParams, 'EditProduct'>>();
   const { productId } = route.params;
+  const headerHeight = useHeaderHeight();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [itemName, setItemName] = useState('');
@@ -149,12 +151,17 @@ export const EditProductScreen: React.FC = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
       <TexturePattern />
       
-      <ScrollView 
-        className="flex-1" 
-        contentContainerStyle={{ padding: 20 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={headerHeight}
       >
-        {/* Photo Section */}
+        <ScrollView 
+          className="flex-1" 
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Photo Section */}
         <TouchableOpacity
           onPress={handleShowImagePicker}
           activeOpacity={0.9}
@@ -325,9 +332,8 @@ export const EditProductScreen: React.FC = () => {
         >
           <Text style={{ color: colors.error, fontWeight: '600' }}>Delete Product</Text>
         </TouchableOpacity>
-        
-        <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

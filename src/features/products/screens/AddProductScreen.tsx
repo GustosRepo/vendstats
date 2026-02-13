@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,6 +12,7 @@ import { colors } from '../../../theme';
 
 export const AddProductScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const headerHeight = useHeaderHeight();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [itemName, setItemName] = useState('');
   const [costPrice, setCostPrice] = useState('');
@@ -106,12 +108,17 @@ export const AddProductScreen: React.FC = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
       <TexturePattern />
       
-      <ScrollView 
-        className="flex-1" 
-        contentContainerStyle={{ padding: 20 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={headerHeight}
       >
-        {/* Photo Section - Instagram Style */}
+        <ScrollView 
+          className="flex-1" 
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Photo Section - Instagram Style */}
         <TouchableOpacity
           onPress={handleShowImagePicker}
           activeOpacity={0.9}
@@ -273,9 +280,8 @@ export const AddProductScreen: React.FC = () => {
           onPress={handleSave}
           disabled={isSubmitting}
         />
-        
-        <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
