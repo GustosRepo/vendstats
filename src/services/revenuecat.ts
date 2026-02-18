@@ -26,6 +26,13 @@ export interface MockOffering {
   availablePackages: MockPackage[];
 }
 
+export interface PurchaseError {
+  code: 'EXPO_GO' | 'NOT_CONFIGURED' | 'PURCHASE_FAILED' | 'UNKNOWN';
+  message: string;
+  userCancelled?: boolean;
+  details?: unknown;
+}
+
 /**
  * Initialize RevenueCat SDK
  * Call this once at app startup
@@ -114,16 +121,28 @@ export const getOfferings = async (): Promise<MockOffering | null> => {
  */
 export const purchasePackage = async (
   packageToPurchase: MockPackage
-): Promise<{ success: boolean; customerInfo?: any; error?: any }> => {
+): Promise<{ success: boolean; customerInfo?: any; error?: PurchaseError }> => {
   if (isExpoGo) {
-    console.log('🚧 Mock purchase in Expo Go - activating subscription');
-    activateSubscription();
-    return { success: true };
+    console.log('🚧 Purchase requested in Expo Go - purchase sheet is unavailable');
+    return {
+      success: false,
+      error: {
+        code: 'EXPO_GO',
+        message: 'Apple purchase sheet is not available in Expo Go. Use a development build, TestFlight, or App Store build.',
+      },
+    };
   }
 
   if (!isRevenueCatConfigured()) {
     console.warn('RevenueCat not configured - cannot process purchase');
-    return { success: false, error: 'RevenueCat not configured' };
+    return {
+      success: false,
+      error: {
+        code: 'NOT_CONFIGURED',
+        message: 'RevenueCat is not configured. Add EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY and rebuild the app.',
+        details: getConfigStatus(),
+      },
+    };
   }
 
   try {
@@ -135,12 +154,26 @@ export const purchasePackage = async (
       return { success: true, customerInfo };
     }
     
-    return { success: false };
+    return {
+      success: false,
+      error: {
+        code: 'PURCHASE_FAILED',
+        message: 'Purchase completed but no active entitlement was detected.',
+      },
+    };
   } catch (error: any) {
     if (!error.userCancelled) {
       console.error('Purchase error:', error);
     }
-    return { success: false, error };
+    return {
+      success: false,
+      error: {
+        code: 'PURCHASE_FAILED',
+        message: error?.message || 'Purchase failed before Apple sheet completed.',
+        userCancelled: !!error?.userCancelled,
+        details: error,
+      },
+    };
   }
 };
 

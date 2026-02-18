@@ -44,8 +44,13 @@ RevenueCat initialized successfully: true
 - ✅ Screenshots (6.7", 6.5", 5.5" displays)
 - ✅ App description and keywords
 - ✅ Privacy Policy URL
-- ✅ Terms of Service URL
+- ✅ License Agreement: Apple’s Standard License Agreement
 - ⏳ RevenueCat API Key configured
+
+### App Store Connect Metadata (Required)
+- Privacy Policy field: add your public privacy policy URL
+- EULA field: choose Apple&apos;s Standard License Agreement
+- App Description: include Terms of Use (EULA) reference if needed
 
 ### Privacy Requirements:
 The app includes an in-app privacy policy that covers:

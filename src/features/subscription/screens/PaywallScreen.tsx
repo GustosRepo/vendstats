@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
@@ -9,8 +9,11 @@ import { getOfferings, purchasePackage, restorePurchases, MockOffering, MockPack
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
 
+const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
+  const [loadingOfferings, setLoadingOfferings] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
   const [offerings, setOfferings] = useState<MockOffering | null>(null);
   const [packages, setPackages] = useState<{ monthly?: MockPackage; yearly?: MockPackage }>({});
@@ -32,6 +35,9 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
         // Map packages by identifier - try multiple matching strategies
         const packageMap: { monthly?: MockPackage; yearly?: MockPackage } = {};
         currentOffering.availablePackages.forEach(pkg => {
+          const packageIdentifier = pkg.identifier.toLowerCase();
+          const productIdentifier = pkg.product.identifier.toLowerCase();
+
           console.log('Checking package:', {
             identifier: pkg.identifier,
             productId: pkg.product.identifier,
@@ -39,10 +45,20 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             priceString: pkg.product.priceString
           });
           
-          // Match our configured products directly
-          if (pkg.product.identifier === 'monthly' || pkg.identifier.includes('monthly')) {
+          // Match package/product identifiers from RevenueCat and App Store products
+          if (
+            productIdentifier.includes('month') ||
+            packageIdentifier.includes('month') ||
+            packageIdentifier.includes('$rc_monthly')
+          ) {
             packageMap.monthly = pkg;
-          } else if (pkg.product.identifier === 'yearly' || pkg.identifier.includes('yearly')) {
+          } else if (
+            productIdentifier.includes('year') ||
+            productIdentifier.includes('annual') ||
+            packageIdentifier.includes('year') ||
+            packageIdentifier.includes('annual') ||
+            packageIdentifier.includes('$rc_annual')
+          ) {
             packageMap.yearly = pkg;
           }
         });
@@ -55,7 +71,14 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
         });
         
         setPackages(packageMap);
+
+        // Ensure a selectable default plan exists
+        if (!packageMap.yearly && packageMap.monthly) {
+          setSelectedPlan('monthly');
+        }
       }
+
+      setLoadingOfferings(false);
     };
     
     loadData();
@@ -81,28 +104,45 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     },
   };
 
+  const selectedPackage = selectedPlan === 'yearly' ? packages.yearly : packages.monthly;
+  const offeringsUnavailable = !loadingOfferings && !selectedPackage;
+  const canSubscribe = !!selectedPackage && !loadingOfferings;
+
   const handleSubscribe = async () => {
-    setLoading(true);
-    
     try {
-      // Get the selected package
-      const selectedPackage = selectedPlan === 'yearly' ? packages.yearly : packages.monthly;
-      
       if (!selectedPackage) {
-        // Fallback to mock for development
-        console.warn('No RevenueCat package available, using mock subscription');
-        const { activateSubscription } = await import('../../../storage');
-        activateSubscription();
-        navigation.goBack();
+        console.warn('No package available for selected plan');
+        Alert.alert(
+          'Subscription Unavailable',
+          'We could not load subscription options. Please try again in a moment.'
+        );
         return;
       }
+
+      setLoading(true);
       
       // Purchase with RevenueCat
       const result = await purchasePackage(selectedPackage);
       
       if (result.success) {
         navigation.goBack();
-      } else if (result.error && !result.error.userCancelled) {
+      } else if (result.error) {
+        if (result.error.userCancelled) {
+          return;
+        }
+
+        if (result.error.code === 'EXPO_GO') {
+          Alert.alert('Purchase Sheet Unavailable', result.error.message);
+          return;
+        }
+
+        if (result.error.code === 'NOT_CONFIGURED') {
+          Alert.alert('Billing Not Configured', result.error.message);
+          return;
+        }
+
+        Alert.alert('Purchase Failed', result.error.message || 'Unable to complete purchase. Please try again.');
+      } else {
         Alert.alert('Purchase Failed', 'Unable to complete purchase. Please try again.');
       }
     } catch (error) {
@@ -131,6 +171,16 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenEula = async () => {
+    const canOpen = await Linking.canOpenURL(APPLE_EULA_URL);
+    if (canOpen) {
+      await Linking.openURL(APPLE_EULA_URL);
+      return;
+    }
+
+    navigation.navigate('TermsOfService');
   };
 
   const features = [
@@ -273,8 +323,21 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             size="lg"
             onPress={handleSubscribe}
             loading={loading}
+            disabled={!canSubscribe}
           />
         </View>
+
+        {loadingOfferings && (
+          <Text className="px-6 mb-4 text-center text-xs text-neutral-500">
+            Subscription options are loading…
+          </Text>
+        )}
+
+        {offeringsUnavailable && (
+          <Text className="px-6 mb-4 text-center text-xs text-neutral-500">
+            Subscription options are currently unavailable. Please try again shortly.
+          </Text>
+        )}
 
         {/* Restore & Terms */}
         <View className="items-center px-6">
@@ -283,6 +346,24 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
               Restore Purchases
             </Text>
           </TouchableOpacity>
+
+          <View className="w-full mb-4">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('PrivacyPolicy')}
+              className="border border-neutral-200 rounded-lg px-4 py-3 mb-2 flex-row items-center justify-between"
+            >
+              <Text className="text-blue-500 text-sm font-medium">Privacy Policy</Text>
+              <Text className="text-blue-500 text-sm">↗</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleOpenEula}
+              className="border border-neutral-200 rounded-lg px-4 py-3 flex-row items-center justify-between"
+            >
+              <Text className="text-blue-500 text-sm font-medium">Terms of Use (EULA)</Text>
+              <Text className="text-blue-500 text-sm">↗</Text>
+            </TouchableOpacity>
+          </View>
           
           <Text className="text-xs text-neutral-400 text-center">
             Payment will be charged to your Apple ID account at the confirmation of purchase. 

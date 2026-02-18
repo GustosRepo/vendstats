@@ -173,7 +173,7 @@ export const RootNavigator: React.FC = () => {
           name="TermsOfService"
           component={TermsOfServiceScreen}
           options={{ 
-            title: 'Terms of Service',
+            title: 'Terms of Use (EULA)',
           }}
         />
       </Stack.Navigator>

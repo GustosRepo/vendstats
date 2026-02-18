@@ -30,12 +30,21 @@ export const TermsOfServiceScreen: React.FC<RootStackScreenProps<'TermsOfService
         showsVerticalScrollIndicator={false}
       >
         <Text style={{ fontSize: 13, color: colors.textTertiary, marginBottom: 24 }}>
-          Last updated: February 10, 2026
+          Last updated: February 17, 2026
         </Text>
 
         <Section title="Acceptance of Terms">
           <Paragraph>
-            By downloading, installing, or using VendStats, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the app.
+            By downloading, installing, or using VendStats, you agree to the applicable Apple terms for apps distributed through the App Store, including Apple&apos;s Standard End User License Agreement.
+          </Paragraph>
+        </Section>
+
+        <Section title="License Agreement">
+          <Paragraph>
+            VendStats is licensed to you under Apple&apos;s Standard End User License Agreement (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+          </Paragraph>
+          <Paragraph>
+            In case of any conflict between these informational terms and Apple&apos;s Standard EULA, Apple&apos;s Standard EULA controls.
           </Paragraph>
         </Section>
 
@@ -56,10 +65,10 @@ export const TermsOfServiceScreen: React.FC<RootStackScreenProps<'TermsOfService
 
         <Section title="Subscription Services">
           <Paragraph>
-            VendStats offers optional premium features through a subscription. Subscriptions are billed through the Apple App Store and are subject to Apple's terms and conditions.
+            VendStats offers optional premium features through a subscription. Subscriptions are billed through the Apple App Store and are subject to Apple&apos;s terms and conditions.
           </Paragraph>
           <Paragraph>
-            You may cancel your subscription at any time through your device's subscription settings. Refunds are handled according to Apple's refund policy.
+            You may cancel your subscription at any time through your device&apos;s subscription settings. Refunds are handled according to Apple&apos;s refund policy.
           </Paragraph>
         </Section>
 
