@@ -10,6 +10,7 @@ import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
 
 const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+const PRIVACY_POLICY_URL = 'https://www.code-werx.com/vendstats/privacy';
 
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -183,6 +184,16 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     navigation.navigate('TermsOfService');
   };
 
+  const handleOpenPrivacyPolicy = async () => {
+    const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
+    if (canOpen) {
+      await Linking.openURL(PRIVACY_POLICY_URL);
+      return;
+    }
+
+    navigation.navigate('PrivacyPolicy');
+  };
+
   const features = [
     { icon: '📊', title: 'Unlimited Events', description: 'Track as many events as you want' },
     { icon: '📈', title: 'Advanced Stats', description: 'Deep insights into your performance' },
@@ -349,7 +360,7 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
 
           <View className="w-full mb-4">
             <TouchableOpacity
-              onPress={() => navigation.navigate('PrivacyPolicy')}
+              onPress={handleOpenPrivacyPolicy}
               className="border border-neutral-200 rounded-lg px-4 py-3 mb-2 flex-row items-center justify-between"
             >
               <Text className="text-blue-500 text-sm font-medium">Privacy Policy</Text>
