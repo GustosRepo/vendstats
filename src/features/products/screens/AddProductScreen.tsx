@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform, KeyboardAvoidingView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Ionicons } from '@expo/vector-icons';
@@ -124,7 +124,7 @@ export const AddProductScreen: React.FC = () => {
           activeOpacity={0.9}
           style={{
             width: '100%',
-            aspectRatio: 1,
+            height: Math.min(Dimensions.get('window').width * 0.9, 320),
             backgroundColor: colors.surface,
             borderRadius: 16,
             borderWidth: 2,

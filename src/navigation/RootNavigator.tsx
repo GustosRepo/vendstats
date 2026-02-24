@@ -79,7 +79,7 @@ export const RootNavigator: React.FC = () => {
           component={CreateEventScreen}
           options={{ 
             title: 'New Event',
-            presentation: 'modal',
+            presentation: 'fullScreenModal',
           }}
         />
         
@@ -104,7 +104,7 @@ export const RootNavigator: React.FC = () => {
           component={AddSaleScreen}
           options={{ 
             title: 'Add Sale',
-            presentation: 'modal',
+            presentation: 'fullScreenModal',
           }}
         />
         
@@ -121,7 +121,7 @@ export const RootNavigator: React.FC = () => {
           component={QuickSaleScreen}
           options={{ 
             title: 'Quick Sale',
-            presentation: 'modal',
+            presentation: 'fullScreenModal',
           }}
         />
         
@@ -130,7 +130,7 @@ export const RootNavigator: React.FC = () => {
           component={EditEventProductsScreen}
           options={{ 
             title: 'Edit Products',
-            presentation: 'modal',
+            presentation: 'fullScreenModal',
           }}
         />
         
@@ -139,7 +139,7 @@ export const RootNavigator: React.FC = () => {
           component={AddProductScreen}
           options={{ 
             title: 'Add Product',
-            presentation: 'modal',
+            presentation: 'fullScreenModal',
           }}
         />
         

@@ -21,7 +21,7 @@ import { MascotImages } from '../../../../assets';
 
 const { width } = Dimensions.get('window');
 const GRID_GAP = 4;
-const NUM_COLUMNS = 3;
+const NUM_COLUMNS = width >= 768 ? 5 : 3;
 const ITEM_SIZE = (width - GRID_GAP * (NUM_COLUMNS + 1)) / NUM_COLUMNS;
 
 export const ProductsScreen: React.FC = () => {
