@@ -67,6 +67,12 @@ export const colors = {
   // Tab bar
   tabActive: '#B87333',
   tabInactive: '#8A9693',
+
+  // Stock alerts
+  stockOut: '#EF4444',
+  stockOutBg: '#FEF2F2',
+  stockLow: '#F59E0B',
+  stockLowBg: '#FEF3C7',
 } as const;
 
 export const spacing = {

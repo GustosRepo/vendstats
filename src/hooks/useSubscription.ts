@@ -8,7 +8,6 @@ import {
   activateSubscription,
   expireSubscription,
   shouldShowPaywall,
-  hasCreatedFirstEvent,
 } from '../storage';
 import { checkSubscriptionStatus } from '../services/revenuecat';
 import { SubscriptionState } from '../types';
@@ -60,8 +59,7 @@ export const useSubscription = () => {
   }, []);
 
   const checkPaywall = useCallback(() => {
-    const hasEvent = hasCreatedFirstEvent();
-    return shouldShowPaywall(hasEvent);
+    return shouldShowPaywall();
   }, []);
 
   return {

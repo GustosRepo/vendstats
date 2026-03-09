@@ -12,7 +12,7 @@ interface QuickSaleButtonProps {
   stockCount?: number;
 }
 
-export const QuickSaleButton: React.FC<QuickSaleButtonProps> = ({
+export const QuickSaleButton: React.FC<QuickSaleButtonProps> = React.memo(({
   itemName,
   price,
   onPress,
@@ -24,6 +24,8 @@ export const QuickSaleButton: React.FC<QuickSaleButtonProps> = ({
       onPress={onPress}
       scaleValue={0.92}
       hapticType="medium"
+      accessibilityRole="button"
+      accessibilityLabel={`${itemName}, $${price.toFixed(0)}${stockCount !== undefined ? `, ${stockCount} in stock` : ''}`}
       style={{
         width: 100,
         height: 130,
@@ -98,4 +100,6 @@ export const QuickSaleButton: React.FC<QuickSaleButtonProps> = ({
       </View>
     </PressableScale>
   );
-};
+});
+
+QuickSaleButton.displayName = 'QuickSaleButton';

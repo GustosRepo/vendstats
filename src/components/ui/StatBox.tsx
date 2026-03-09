@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { formatCurrency } from '../../utils/currency';
+import { colors, radius } from '../../theme';
 
 interface StatBoxProps {
   label: string;
@@ -12,47 +13,20 @@ interface StatBoxProps {
 }
 
 const variantStyles = {
-  default: {
-    container: 'bg-neutral-50',
-    value: 'text-neutral-900',
-  },
-  profit: {
-    container: 'bg-green-50',
-    value: 'text-green-600',
-  },
-  loss: {
-    container: 'bg-red-50',
-    value: 'text-red-600',
-  },
-  revenue: {
-    container: 'bg-blue-50',
-    value: 'text-blue-600',
-  },
-  expense: {
-    container: 'bg-amber-50',
-    value: 'text-amber-600',
-  },
+  default: { bg: colors.background, text: colors.textPrimary },
+  profit: { bg: '#f0fdf4', text: colors.growth },
+  loss: { bg: '#fef2f2', text: colors.danger },
+  revenue: { bg: '#eff6ff', text: '#2563eb' },
+  expense: { bg: '#fffbeb', text: '#d97706' },
 };
 
 const sizeStyles = {
-  sm: {
-    container: 'p-3',
-    value: 'text-xl',
-    label: 'text-xs',
-  },
-  md: {
-    container: 'p-4',
-    value: 'text-2xl',
-    label: 'text-sm',
-  },
-  lg: {
-    container: 'p-5',
-    value: 'text-4xl',
-    label: 'text-base',
-  },
+  sm: { padding: 12, valueSize: 20, labelSize: 12 },
+  md: { padding: 16, valueSize: 24, labelSize: 14 },
+  lg: { padding: 20, valueSize: 36, labelSize: 16 },
 };
 
-export const StatBox: React.FC<StatBoxProps> = ({
+export const StatBox: React.FC<StatBoxProps> = React.memo(({
   label,
   value,
   isCurrency = false,
@@ -64,22 +38,28 @@ export const StatBox: React.FC<StatBoxProps> = ({
     ? formatCurrency(value) 
     : value.toString();
 
-  const styles = variantStyles[variant];
-  const sizes = sizeStyles[size];
+  const vs = variantStyles[variant];
+  const ss = sizeStyles[size];
 
   return (
-    <View className={`${styles.container} ${sizes.container} rounded-xl`}>
-      <Text className={`${sizes.label} text-neutral-500 font-medium mb-1`}>
+    <View
+      style={{ backgroundColor: vs.bg, padding: ss.padding, borderRadius: radius.xl }}
+      accessible={true}
+      accessibilityLabel={`${label}: ${displayValue}${subtitle ? `, ${subtitle}` : ''}`}
+    >
+      <Text style={{ fontSize: ss.labelSize, fontWeight: '500', color: colors.textTertiary, marginBottom: 4 }}>
         {label}
       </Text>
-      <Text className={`${sizes.value} ${styles.value} font-bold`}>
+      <Text style={{ fontSize: ss.valueSize, fontWeight: '700', color: vs.text }}>
         {displayValue}
       </Text>
       {subtitle && (
-        <Text className="text-xs text-neutral-400 mt-1">
+        <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
           {subtitle}
         </Text>
       )}
     </View>
   );
-};
+});
+
+StatBox.displayName = 'StatBox';

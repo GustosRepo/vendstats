@@ -3,8 +3,26 @@
  * Consistent currency display throughout the app
  */
 
-const DEFAULT_CURRENCY = 'USD';
-const DEFAULT_LOCALE = 'en-US';
+import { getCurrency } from '../storage/settings';
+
+const CURRENCY_LOCALE_MAP: Record<string, string> = {
+  USD: 'en-US',
+  THB: 'th-TH',
+  MXN: 'es-MX',
+  EUR: 'de-DE',
+};
+
+/**
+ * Get the user's saved currency + matching locale
+ */
+const getUserCurrency = (): { currency: string; locale: string } => {
+  try {
+    const currency = getCurrency();
+    return { currency, locale: CURRENCY_LOCALE_MAP[currency] || 'en-US' };
+  } catch {
+    return { currency: 'USD', locale: 'en-US' };
+  }
+};
 
 /**
  * Format a number as currency
@@ -17,9 +35,10 @@ export const formatCurrency = (
     showCents?: boolean;
   }
 ): string => {
+  const userPrefs = getUserCurrency();
   const {
-    currency = DEFAULT_CURRENCY,
-    locale = DEFAULT_LOCALE,
+    currency = userPrefs.currency,
+    locale = userPrefs.locale,
     showCents = true,
   } = options || {};
 
@@ -45,11 +64,13 @@ export const formatCurrencyWithSign = (amount: number): string => {
  * Format as compact currency (e.g., $1.2K)
  */
 export const formatCompactCurrency = (amount: number): string => {
+  const { currency, locale } = getUserCurrency();
+  const symbol = new Intl.NumberFormat(locale, { style: 'currency', currency }).formatToParts(0).find(p => p.type === 'currency')?.value || '$';
   if (Math.abs(amount) >= 1000000) {
-    return `$${(amount / 1000000).toFixed(1)}M`;
+    return `${symbol}${(amount / 1000000).toFixed(1)}M`;
   }
   if (Math.abs(amount) >= 1000) {
-    return `$${(amount / 1000).toFixed(1)}K`;
+    return `${symbol}${(amount / 1000).toFixed(1)}K`;
   }
   return formatCurrency(amount);
 };

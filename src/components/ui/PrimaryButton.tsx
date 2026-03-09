@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, ViewStyle, TextStyle } from 'react-native';
+import { colors, radius } from '../../theme';
 
 interface PrimaryButtonProps extends TouchableOpacityProps {
   title: string;
@@ -9,41 +10,41 @@ interface PrimaryButtonProps extends TouchableOpacityProps {
   icon?: React.ReactNode;
 }
 
-const variantStyles = {
+const variantStyles: Record<string, { container: ViewStyle; disabledContainer: ViewStyle; text: TextStyle }> = {
   primary: {
-    container: 'bg-blue-500 active:bg-blue-600',
-    text: 'text-white',
-    disabled: 'bg-blue-300',
+    container: { backgroundColor: colors.primary },
+    disabledContainer: { backgroundColor: colors.primary + '80' },
+    text: { color: '#FFFFFF' },
   },
   secondary: {
-    container: 'bg-neutral-100 active:bg-neutral-200',
-    text: 'text-neutral-900',
-    disabled: 'bg-neutral-100',
+    container: { backgroundColor: colors.background },
+    disabledContainer: { backgroundColor: colors.background },
+    text: { color: colors.textPrimary },
   },
   danger: {
-    container: 'bg-red-500 active:bg-red-600',
-    text: 'text-white',
-    disabled: 'bg-red-300',
+    container: { backgroundColor: colors.danger },
+    disabledContainer: { backgroundColor: colors.danger + '80' },
+    text: { color: '#FFFFFF' },
   },
   ghost: {
-    container: 'bg-transparent active:bg-neutral-100',
-    text: 'text-blue-500',
-    disabled: 'bg-transparent',
+    container: { backgroundColor: 'transparent' },
+    disabledContainer: { backgroundColor: 'transparent' },
+    text: { color: colors.primary },
   },
 };
 
-const sizeStyles = {
+const sizeStyles: Record<string, { container: ViewStyle; text: TextStyle }> = {
   sm: {
-    container: 'px-4 py-2 rounded-lg',
-    text: 'text-sm',
+    container: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.md },
+    text: { fontSize: 14 },
   },
   md: {
-    container: 'px-6 py-3 rounded-xl',
-    text: 'text-base',
+    container: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: radius.xl },
+    text: { fontSize: 16 },
   },
   lg: {
-    container: 'px-8 py-4 rounded-xl',
-    text: 'text-lg',
+    container: { paddingHorizontal: 32, paddingVertical: 16, borderRadius: radius.xl },
+    text: { fontSize: 18 },
   },
 };
 
@@ -54,41 +55,44 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   loading = false,
   disabled = false,
   icon,
-  className = '',
+  style,
   ...props
 }) => {
-  const styles = variantStyles[variant];
-  const sizes = sizeStyles[size];
+  const vs = variantStyles[variant];
+  const ss = sizeStyles[size];
   const isDisabled = disabled || loading;
 
   return (
     <TouchableOpacity
-      className={`
-        ${isDisabled ? styles.disabled : styles.container}
-        ${sizes.container}
-        flex-row items-center justify-center
-        ${className}
-      `}
+      style={[
+        isDisabled ? vs.disabledContainer : vs.container,
+        ss.container,
+        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+        style as ViewStyle,
+      ]}
       disabled={isDisabled}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled }}
       {...props}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' || variant === 'danger' ? '#fff' : '#525252'}
+          color={variant === 'primary' || variant === 'danger' ? '#fff' : colors.textTertiary}
           size="small"
         />
       ) : (
         <>
           {icon && <>{icon}</>}
           <Text
-            className={`
-              ${styles.text}
-              ${sizes.text}
-              font-semibold
-              ${icon ? 'ml-2' : ''}
-              ${isDisabled ? 'opacity-60' : ''}
-            `}
+            style={[
+              vs.text,
+              ss.text,
+              { fontWeight: '600' },
+              icon ? { marginLeft: 8 } : undefined,
+              isDisabled ? { opacity: 0.6 } : undefined,
+            ]}
           >
             {title}
           </Text>

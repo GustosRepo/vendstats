@@ -72,6 +72,7 @@ export const PressableScale: React.FC<PressableScaleProps> = ({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onPress={onPress}
+      accessibilityRole="button"
       {...props}
     >
       {children}

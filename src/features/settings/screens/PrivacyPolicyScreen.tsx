@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { colors } from '../../../theme';
@@ -21,6 +22,8 @@ const Paragraph: React.FC<{ children: string }> = ({ children }) => (
 );
 
 export const PrivacyPolicyScreen: React.FC<RootStackScreenProps<'PrivacyPolicy'>> = () => {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
       <TexturePattern />
@@ -30,58 +33,40 @@ export const PrivacyPolicyScreen: React.FC<RootStackScreenProps<'PrivacyPolicy'>
         showsVerticalScrollIndicator={false}
       >
         <Text style={{ fontSize: 13, color: colors.textTertiary, marginBottom: 24 }}>
-          Last updated: February 10, 2026
+          {t('privacy.lastUpdated')}
         </Text>
 
-        <Section title="Overview">
-          <Paragraph>
-            VendStats ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application.
-          </Paragraph>
+        <Section title={t('privacy.overviewTitle')}>
+          <Paragraph>{t('privacy.overviewBody')}</Paragraph>
         </Section>
 
-        <Section title="Information We Collect">
-          <Paragraph>
-            VendStats stores all your data locally on your device. We do not collect, transmit, or store any of your personal information on external servers.
-          </Paragraph>
-          <Paragraph>
-            The data you enter in the app, including events, sales, products, and settings, is stored only on your device using secure local storage.
-          </Paragraph>
+        <Section title={t('privacy.collectTitle')}>
+          <Paragraph>{t('privacy.collectBody1')}</Paragraph>
+          <Paragraph>{t('privacy.collectBody2')}</Paragraph>
         </Section>
 
-        <Section title="How We Use Your Information">
-          <Paragraph>
-            All data processing happens locally on your device. We use your data solely to provide the app's functionality, including tracking sales, calculating profits, and managing inventory.
-          </Paragraph>
+        <Section title={t('privacy.useTitle')}>
+          <Paragraph>{t('privacy.useBody')}</Paragraph>
         </Section>
 
-        <Section title="Data Security">
-          <Paragraph>
-            Your data is stored securely on your device. We recommend keeping your device protected with a passcode or biometric authentication to ensure your business data remains private.
-          </Paragraph>
+        <Section title={t('privacy.securityTitle')}>
+          <Paragraph>{t('privacy.securityBody')}</Paragraph>
         </Section>
 
-        <Section title="Third-Party Services">
-          <Paragraph>
-            If you choose to subscribe to VendStats Premium, payment processing is handled securely through Apple's App Store. We do not have access to your payment details.
-          </Paragraph>
+        <Section title={t('privacy.thirdPartyTitle')}>
+          <Paragraph>{t('privacy.thirdPartyBody')}</Paragraph>
         </Section>
 
-        <Section title="Data Deletion">
-          <Paragraph>
-            You can delete all your data at any time through the Settings screen. Uninstalling the app will also remove all stored data from your device.
-          </Paragraph>
+        <Section title={t('privacy.deletionTitle')}>
+          <Paragraph>{t('privacy.deletionBody')}</Paragraph>
         </Section>
 
-        <Section title="Changes to This Policy">
-          <Paragraph>
-            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy within the app.
-          </Paragraph>
+        <Section title={t('privacy.changesTitle')}>
+          <Paragraph>{t('privacy.changesBody')}</Paragraph>
         </Section>
 
-        <Section title="Contact Us">
-          <Paragraph>
-            If you have any questions about this Privacy Policy, please contact us at admin@code-wrx.com
-          </Paragraph>
+        <Section title={t('privacy.contactTitle')}>
+          <Paragraph>{t('privacy.contactBody')}</Paragraph>
         </Section>
       </ScrollView>
     </SafeAreaView>

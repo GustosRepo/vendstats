@@ -3,6 +3,7 @@ import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -16,6 +17,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
 }) => {
   const { eventId } = route.params;
   const headerHeight = useHeaderHeight();
+  const { t } = useTranslation();
   
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -28,22 +30,22 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
     const newErrors: Record<string, string> = {};
 
     if (!itemName.trim()) {
-      newErrors.itemName = 'Item name is required';
+      newErrors.itemName = t('addSale.itemNameRequired');
     }
 
     const quantityNum = parseInt(quantity, 10);
     if (!quantity || isNaN(quantityNum) || quantityNum < 1) {
-      newErrors.quantity = 'Enter a valid quantity';
+      newErrors.quantity = t('addSale.validQuantity');
     }
 
     const salePriceNum = parseFloat(salePrice);
     if (!salePrice || isNaN(salePriceNum) || salePriceNum < 0) {
-      newErrors.salePrice = 'Enter a valid price';
+      newErrors.salePrice = t('addSale.validPrice');
     }
 
     const costNum = parseFloat(costPerItem);
     if (costPerItem && isNaN(costNum)) {
-      newErrors.costPerItem = 'Enter a valid cost';
+      newErrors.costPerItem = t('addSale.validCost');
     }
 
     setErrors(newErrors);
@@ -68,7 +70,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
       trackEventCompletedForReview();
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to add sale. Please try again.');
+      Alert.alert(t('common.error'), t('addSale.addError'));
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
       setCostPerItem('');
       setErrors({});
     } catch (error) {
-      Alert.alert('Error', 'Failed to add sale. Please try again.');
+      Alert.alert(t('common.error'), t('addSale.addError'));
     } finally {
       setLoading(false);
     }
@@ -113,73 +115,73 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
       <TexturePattern />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
         keyboardVerticalOffset={headerHeight}
       >
         <ScrollView
-          className="flex-1"
+          style={{ flex: 1 }}
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Item Details */}
           <Card variant="elevated" padding="lg" className="mb-4">
-            <Text className="text-lg font-semibold text-neutral-900 mb-4">
-              Sale Details
+            <Text className="text-lg font-semibold text-[#171717] mb-4">
+              {t('addSale.saleDetails')}
             </Text>
 
             <InputField
-              label="Item Name"
-              placeholder="e.g., Candle - Lavender"
+              label={t('addSale.itemName')}
+              placeholder={t('addSale.itemNamePlaceholder')}
               value={itemName}
               onChangeText={setItemName}
               error={errors.itemName}
               autoFocus
-              containerClassName="mb-4"
+              containerStyle={{ marginBottom: 16 }}
             />
 
             <InputField
-              label="Quantity"
+              label={t('addSale.quantity')}
               placeholder="1"
               value={quantity}
               onChangeText={setQuantity}
               error={errors.quantity}
               keyboardType="number-pad"
-              containerClassName="mb-4"
+              containerStyle={{ marginBottom: 16 }}
             />
 
             <InputField
-              label="Sale Price ($)"
+              label={t('addSale.salePrice')}
               placeholder="0.00"
               value={salePrice}
               onChangeText={setSalePrice}
               error={errors.salePrice}
               keyboardType="decimal-pad"
-              helperText="Price per item"
-              containerClassName="mb-4"
+              helperText={t('addSale.pricePerItem')}
+              containerStyle={{ marginBottom: 16 }}
             />
 
             <InputField
-              label="Cost per Item ($)"
+              label={t('addSale.costPerItem')}
               placeholder="0.00"
               value={costPerItem}
               onChangeText={setCostPerItem}
               error={errors.costPerItem}
               keyboardType="decimal-pad"
-              helperText="Your cost to make/buy this item"
+              helperText={t('addSale.yourCost')}
             />
           </Card>
 
           {/* Preview */}
           {salePriceNum > 0 && (
             <Card variant="outlined" padding="md" className="mb-6">
-              <Text className="text-xs text-neutral-500 font-medium mb-2">PREVIEW</Text>
+              <Text className="text-xs text-[#737373] font-medium mb-2">{t('addSale.preview')}</Text>
               <View className="flex-row justify-between mb-1">
-                <Text className="text-neutral-600">Revenue</Text>
-                <Text className="font-semibold text-neutral-900">${revenue.toFixed(2)}</Text>
+                <Text style={{ color: colors.textSecondary }}>{t('common.revenue')}</Text>
+                <Text className="font-semibold text-[#171717]">${revenue.toFixed(2)}</Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-neutral-600">Profit</Text>
-                <Text className={`font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <Text style={{ color: colors.textSecondary }}>{t('common.profit')}</Text>
+                <Text style={{ fontWeight: '600', color: profit >= 0 ? colors.growth : colors.danger }}>
                   ${profit.toFixed(2)}
                 </Text>
               </View>
@@ -188,16 +190,16 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
 
           {/* Actions */}
           <View className="flex-row gap-3 mb-3">
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <PrimaryButton
-                title="Cancel"
+                title={t('common.cancel')}
                 variant="secondary"
                 onPress={() => navigation.goBack()}
               />
             </View>
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <PrimaryButton
-                title="Add Sale"
+                title={t('addSale.addSaleButton')}
                 onPress={handleSave}
                 loading={loading}
               />
@@ -205,7 +207,7 @@ export const AddSaleScreen: React.FC<RootStackScreenProps<'AddSale'>> = ({
           </View>
 
           <PrimaryButton
-            title="Add & Create Another"
+            title={t('addSale.addAndCreateAnother')}
             variant="ghost"
             onPress={handleAddAnother}
           />

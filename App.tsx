@@ -1,4 +1,5 @@
 import 'react-native-get-random-values'; // Must be first - polyfill for uuid
+import './src/i18n'; // Initialize i18n before anything renders
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -29,8 +30,8 @@ export default function App() {
 
   if (!isReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#0ea5e9" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#E8F1F8' }}>
+        <ActivityIndicator size="large" color="#1B4332" />
       </View>
     );
   }

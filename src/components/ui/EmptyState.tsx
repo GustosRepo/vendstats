@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { colors, radius } from '../../theme';
 
 interface EmptyStateProps {
   title: string;
@@ -17,27 +18,29 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
 }) => {
   return (
-    <View className="flex-1 items-center justify-center px-8 py-12">
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 48 }}>
       {icon && (
-        <View className="mb-4 opacity-40">
+        <View style={{ marginBottom: 16, opacity: 0.4 }}>
           {icon}
         </View>
       )}
       
-      <Text className="text-xl font-semibold text-neutral-800 text-center mb-2">
+      <Text style={{ fontSize: 20, fontWeight: '600', color: colors.textPrimary, textAlign: 'center', marginBottom: 8 }}>
         {title}
       </Text>
       
-      <Text className="text-base text-neutral-500 text-center mb-6">
+      <Text style={{ fontSize: 16, color: colors.textTertiary, textAlign: 'center', marginBottom: 24 }}>
         {message}
       </Text>
       
       {actionLabel && onAction && (
         <TouchableOpacity
           onPress={onAction}
-          className="bg-blue-500 px-6 py-3 rounded-xl active:bg-blue-600"
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+          style={{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: radius.xl }}
         >
-          <Text className="text-white font-semibold text-base">
+          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
             {actionLabel}
           </Text>
         </TouchableOpacity>

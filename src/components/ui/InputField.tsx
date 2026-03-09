@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TextInputProps, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TextInputProps, TouchableOpacity, ViewStyle } from 'react-native';
+import { colors, radius } from '../../theme';
 
 interface InputFieldProps extends TextInputProps {
   label?: string;
@@ -8,7 +9,7 @@ interface InputFieldProps extends TextInputProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   onRightIconPress?: () => void;
-  containerClassName?: string;
+  containerStyle?: ViewStyle;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -18,8 +19,8 @@ export const InputField: React.FC<InputFieldProps> = ({
   leftIcon,
   rightIcon,
   onRightIconPress,
-  containerClassName = '',
-  className = '',
+  containerStyle,
+  style,
   onFocus,
   onBlur,
   ...props
@@ -37,39 +38,43 @@ export const InputField: React.FC<InputFieldProps> = ({
   };
 
   const borderColor = error
-    ? 'border-red-500'
+    ? colors.danger
     : isFocused
-    ? 'border-blue-500'
-    : 'border-neutral-200';
+    ? colors.primary
+    : colors.divider;
 
   return (
-    <View className={`${containerClassName}`}>
+    <View style={containerStyle}>
       {label && (
-        <Text className="text-sm font-medium text-neutral-700 mb-2">
+        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSecondary, marginBottom: 8 }}>
           {label}
         </Text>
       )}
       
       <View
-        className={`
-          flex-row items-center
-          bg-white rounded-xl border
-          ${borderColor}
-          px-4 py-3
-        `}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.surface,
+          borderRadius: radius.xl,
+          borderWidth: 1,
+          borderColor,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+        }}
       >
         {leftIcon && (
-          <View className="mr-3">
+          <View style={{ marginRight: 12 }}>
             {leftIcon}
           </View>
         )}
         
         <TextInput
-          className={`
-            flex-1 text-base text-neutral-900
-            ${className}
-          `}
-          placeholderTextColor="#a3a3a3"
+          style={[
+            { flex: 1, fontSize: 16, color: colors.textPrimary },
+            style,
+          ]}
+          placeholderTextColor={colors.textMuted}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...props}
@@ -78,7 +83,7 @@ export const InputField: React.FC<InputFieldProps> = ({
         {rightIcon && (
           <TouchableOpacity 
             onPress={onRightIconPress}
-            className="ml-3"
+            style={{ marginLeft: 12 }}
             disabled={!onRightIconPress}
           >
             {rightIcon}
@@ -87,13 +92,13 @@ export const InputField: React.FC<InputFieldProps> = ({
       </View>
 
       {error && (
-        <Text className="text-sm text-red-500 mt-1">
+        <Text style={{ fontSize: 14, color: colors.danger, marginTop: 4 }}>
           {error}
         </Text>
       )}
 
       {helperText && !error && (
-        <Text className="text-sm text-neutral-400 mt-1">
+        <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
           {helperText}
         </Text>
       )}

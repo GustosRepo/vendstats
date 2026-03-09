@@ -18,7 +18,7 @@ interface AnimatedListItemProps {
   type?: 'fade' | 'slide' | 'scale' | 'slideUp';
 }
 
-export const AnimatedListItem: React.FC<AnimatedListItemProps> = ({
+export const AnimatedListItem: React.FC<AnimatedListItemProps> = React.memo(({
   children,
   index,
   style,
@@ -71,4 +71,6 @@ export const AnimatedListItem: React.FC<AnimatedListItemProps> = ({
       {children}
     </Animated.View>
   );
-};
+});
+
+AnimatedListItem.displayName = 'AnimatedListItem';

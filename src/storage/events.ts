@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { mmkvStorage } from './mmkv';
+import { mmkvStorage, bumpDataVersion } from './mmkv';
 import { Event, CreateEventInput, UpdateEventInput, STORAGE_KEYS } from '../types';
 
 // Get all events
@@ -23,16 +23,23 @@ export const createEvent = (input: CreateEventInput): Event => {
     id: uuidv4(),
     name: input.name,
     date: input.date,
+    location: input.location,
     boothFee: input.boothFee,
     travelCost: input.travelCost,
+    suppliesCost: input.suppliesCost,
+    miscCost: input.miscCost,
     notes: input.notes || '',
     productIds: input.productIds,
+    tags: input.tags,
+    receiptPhotoUri: input.receiptPhotoUri,
+    weather: input.weather,
     createdAt: now,
     updatedAt: now,
   };
 
   events.push(newEvent);
   mmkvStorage.setJSON(STORAGE_KEYS.EVENTS, events);
+  bumpDataVersion();
 
   // Mark that first event has been created (for paywall trigger)
   if (events.length === 1) {
@@ -59,6 +66,7 @@ export const updateEvent = (input: UpdateEventInput): Event | null => {
 
   events[index] = updatedEvent;
   mmkvStorage.setJSON(STORAGE_KEYS.EVENTS, events);
+  bumpDataVersion();
 
   return updatedEvent;
 };
@@ -73,6 +81,7 @@ export const deleteEvent = (id: string): boolean => {
   }
 
   mmkvStorage.setJSON(STORAGE_KEYS.EVENTS, filteredEvents);
+  bumpDataVersion();
   return true;
 };
 

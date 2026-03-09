@@ -102,6 +102,22 @@ export const mmkvStorage = {
   },
 };
 
+// ─── Data-version counter ─────────────────────────────────────────
+// Bumped on every write to events or sales so screens can skip expensive
+// recalculations when data hasn't changed since last load.
+const DATA_VERSION_KEY = 'data_version';
+
+export const bumpDataVersion = (): number => {
+  const current = mmkvStorage.getNumber(DATA_VERSION_KEY) ?? 0;
+  const next = current + 1;
+  mmkvStorage.setNumber(DATA_VERSION_KEY, next);
+  return next;
+};
+
+export const getDataVersion = (): number => {
+  return mmkvStorage.getNumber(DATA_VERSION_KEY) ?? 0;
+};
+
 // Backwards compatible export
 export const storage = {
   set: (key: string, value: string | number | boolean) => {

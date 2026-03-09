@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { ScrollView, View, Text, Dimensions, TouchableOpacity, Image } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +9,9 @@ import { TexturePattern } from '../../../components/TexturePattern';
 import { EmptyState } from '../../../components';
 import { PressableScale, AnimatedListItem, FadeIn } from '../../../components/animations';
 import { getAllEvents, getAllSales, getQuickSaleItems, getLowStockThreshold } from '../../../storage';
+import { hasPremiumAccess } from '../../../storage';
+import { getDataVersion } from '../../../storage/mmkv';
+import { getReminderEnabled } from '../../../storage/settings';
 import { calculateGlobalStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
 import { Event, GlobalStats, QuickSaleItem } from '../../../types';
@@ -16,23 +20,26 @@ import { MascotImages } from '../../../../assets';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Pill button
-const PillButton: React.FC<{ label: string; onPress: () => void }> = ({ label, onPress }) => (
+// Pill button with icon
+const PillButton: React.FC<{ label: string; icon?: keyof typeof Ionicons.glyphMap; onPress: () => void }> = ({ label, icon, onPress }) => (
   <PressableScale
     onPress={onPress}
     style={{
       backgroundColor: colors.primary,
       borderRadius: radius.full,
       paddingVertical: 10,
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
     }}
   >
+    {icon && <Ionicons name={icon} size={15} color="#FFFFFF" style={{ marginRight: 5 }} />}
     <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFFFFF' }}>{label}</Text>
   </PressableScale>
 );
 
 // Hero revenue card - clean and simple
-const HeroRevenueCard: React.FC<{ revenue: number }> = ({ revenue }) => (
+const HeroRevenueCard: React.FC<{ revenue: number; label: string }> = ({ revenue, label }) => (
   <View style={[{ 
     backgroundColor: colors.surface, 
     borderRadius: radius.xl, 
@@ -46,7 +53,7 @@ const HeroRevenueCard: React.FC<{ revenue: number }> = ({ revenue }) => (
       textTransform: 'uppercase',
       marginBottom: 8,
     }}>
-      Total Revenue
+      {label}
     </Text>
     <Text style={{ 
       fontSize: 44, 
@@ -133,13 +140,21 @@ const EventRow: React.FC<{
 );
 
 export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [eventProfits, setEventProfits] = useState<Record<string, number>>({});
   const [lowStockItems, setLowStockItems] = useState<QuickSaleItem[]>([]);
   const [hasProducts, setHasProducts] = useState(true);
+  const [showReminder, setShowReminder] = useState(false);
+  const lastLoadedVersion = useRef(-1);
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback((force = false) => {
+    // Skip if data hasn't changed since last load
+    const currentVersion = getDataVersion();
+    if (!force && currentVersion === lastLoadedVersion.current) return;
+    lastLoadedVersion.current = currentVersion;
+
     const allEvents = getAllEvents();
     const allSales = getAllSales();
     const globalStats = calculateGlobalStats(allEvents, allSales);
@@ -166,6 +181,15 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
     setEvents(allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setStats(globalStats);
     setEventProfits(profits);
+
+    // Daily reminder check
+    if (getReminderEnabled() && allEvents.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const salesToday = allSales.filter(s => s.createdAt.startsWith(today));
+      setShowReminder(salesToday.length === 0);
+    } else {
+      setShowReminder(false);
+    }
   }, []);
 
   useFocusEffect(
@@ -191,32 +215,37 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
           paddingBottom: 28,
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 }}>
               <Image 
                 source={MascotImages.wink} 
                 style={{ width: 56, height: 56, marginRight: 12 }} 
                 resizeMode="contain" 
               />
-              <View>
-                <Text style={{ 
-                  fontSize: 28, 
-                  fontWeight: '700', 
-                  color: colors.textPrimary, 
-                  letterSpacing: -0.5,
-                  marginBottom: 2,
-                }}>
+              <View style={{ flexShrink: 1 }}>
+                <Text 
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                  style={{ 
+                    fontSize: 28, 
+                    fontWeight: '700', 
+                    color: colors.textPrimary, 
+                    letterSpacing: -0.5,
+                    marginBottom: 2,
+                  }}>
                   VendStats 
                 </Text>
                 <Text style={{ 
                   fontSize: 14, 
                   color: colors.textSecondary,
-                }}>
-                  {hasEvents ? `${events.length} events tracked` : !hasProducts ? 'Add products to start' : 'Get started'}
+                }} numberOfLines={1}>
+                  {hasEvents ? t('dashboard.eventsTracked', { count: events.length }) : !hasProducts ? t('dashboard.addItemsToStart') : t('dashboard.getStarted')}
                 </Text>
               </View>
             </View>
             <PillButton 
-              label={!hasProducts ? "Add Product" : "New Event"} 
+              icon={!hasProducts ? 'add-circle-outline' : 'calendar-outline'}
+              label={!hasProducts ? t('dashboard.addItem') : t('dashboard.newEvent')} 
               onPress={() => !hasProducts ? navigation.navigate('AddProduct') : navigation.navigate('CreateEvent')} 
             />
           </View>
@@ -226,17 +255,17 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
           <View style={{ paddingHorizontal: 24 }}>
             {!hasProducts ? (
               <EmptyState
-                title="Welcome to VendStats!"
-                message="First, add the products you sell. Then you can create events and track your profits!"
-                actionLabel="Add Products"
+                title={t('dashboard.welcomeTitle')}
+                message={t('dashboard.welcomeMessage')}
+                actionLabel={t('dashboard.addItems')}
                 onAction={() => navigation.navigate('AddProduct')}
                 icon={<Image source={MascotImages.winkPhone} style={{ width: 120, height: 120 }} resizeMode="contain" />}
               />
             ) : (
               <EmptyState
-                title="Products Ready! 🎉"
-                message="Now create your first event to start tracking your pop-up business profits."
-                actionLabel="Create Event"
+                title={t('dashboard.itemsReadyTitle')}
+                message={t('dashboard.itemsReadyMessage')}
+                actionLabel={t('dashboard.createEvent')}
                 onAction={() => navigation.navigate('CreateEvent')}
                 icon={<Image source={MascotImages.tent} style={{ width: 120, height: 120 }} resizeMode="contain" />}
               />
@@ -247,7 +276,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
             {/* Hero Revenue Card */}
             <AnimatedListItem index={0} type="slideUp">
               <View style={{ marginBottom: 16 }}>
-                <HeroRevenueCard revenue={stats?.totalRevenue || 0} />
+                <HeroRevenueCard revenue={stats?.totalRevenue || 0} label={t('dashboard.totalRevenue')} />
               </View>
             </AnimatedListItem>
 
@@ -255,35 +284,61 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
             <AnimatedListItem index={1} type="slideUp">
               <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
                 <MetricCard 
-                  label="Net Profit" 
+                  label={t('dashboard.netProfit')} 
                   value={formatCurrency(stats?.totalProfit || 0)} 
                 />
                 <MetricCard 
-                  label="Events" 
+                  label={t('dashboard.events')} 
                   value={String(events.length)} 
                 />
               </View>
             </AnimatedListItem>
 
-            {/* Low Stock Alert */}
-            {lowStockItems.length > 0 && (
+            {/* Daily Reminder Banner */}
+            {showReminder && (
+              <AnimatedListItem index={2} type="slideUp">
+                <TouchableOpacity
+                  onPress={() => recentEvents.length > 0 ? navigation.navigate('QuickSale', { eventId: recentEvents[0].id }) : null}
+                  style={[{
+                    backgroundColor: colors.warning + '18',
+                    borderRadius: radius.xl,
+                    padding: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 24,
+                    borderWidth: 1,
+                    borderColor: colors.warning + '40',
+                  }]}
+                >
+                  <Ionicons name="notifications-outline" size={22} color={colors.warning} style={{ marginRight: 12 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary }}>{t('reminder.bannerTitle')}</Text>
+                    <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 2 }}>{t('reminder.bannerMessage')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                </TouchableOpacity>
+              </AnimatedListItem>
+            )}
+
+            {/* Low Stock Alert — Pro only */}
+            {lowStockItems.length > 0 && hasPremiumAccess() && (
               <AnimatedListItem index={2} type="slideUp">
                 <View style={{ marginBottom: 24 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons name="alert-circle" size={16} color={colors.danger || '#EF4444'} style={{ marginRight: 6 }} />
+                      <Ionicons name="alert-circle" size={16} color={colors.stockOut} style={{ marginRight: 6 }} />
                       <Text style={{ 
                         fontSize: 11, 
                         fontWeight: '600', 
-                        color: colors.danger || '#EF4444', 
+                        color: colors.stockOut, 
                         letterSpacing: 0.8, 
                         textTransform: 'uppercase',
                       }}>
-                        Low Stock Alert
+                        {t('dashboard.lowItemAlert')}
                       </Text>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('Products')}>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>{t('common.viewAll')}</Text>
                     </TouchableOpacity>
                   </View>
                   <View style={[{ 
@@ -292,6 +347,22 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                   paddingHorizontal: 16,
                   paddingVertical: 12,
                 }, shadows.md]}>
+                  {/* Out-of-stock summary */}
+                  {lowStockItems.filter(i => (i.stockCount || 0) === 0).length > 0 && (
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.stockOut + '10',
+                      borderRadius: 10,
+                      padding: 10,
+                      marginBottom: 8,
+                    }}>
+                      <Ionicons name="close-circle" size={18} color={colors.stockOut} style={{ marginRight: 8 }} />
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.stockOut, flex: 1 }}>
+                        {t('inventory.outOfStockCount', { count: lowStockItems.filter(i => (i.stockCount || 0) === 0).length })}
+                      </Text>
+                    </View>
+                  )}
                   {lowStockItems.slice(0, 3).map((item, index) => (
                     <View 
                       key={item.id} 
@@ -323,22 +394,22 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                         </Text>
                       </View>
                       <View style={{ 
-                        backgroundColor: (item.stockCount || 0) === 0 ? (colors.danger || '#EF4444') + '15' : '#FEF3C7',
+                        backgroundColor: (item.stockCount || 0) === 0 ? colors.stockOutBg : colors.stockLowBg,
                         paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
                       }}>
                         <Text style={{ 
                           fontSize: 13, 
                           fontWeight: '700', 
-                          color: (item.stockCount || 0) === 0 ? (colors.danger || '#EF4444') : '#D97706',
+                          color: (item.stockCount || 0) === 0 ? colors.stockOut : colors.stockLow,
                         }}>
-                          {(item.stockCount || 0) === 0 ? 'Out of Stock' : `${item.stockCount} left`}
+                          {(item.stockCount || 0) === 0 ? t('dashboard.outOfItems') : t('dashboard.itemsLeft', { count: item.stockCount })}
                         </Text>
                       </View>
                     </View>
                   ))}
                   {lowStockItems.length > 3 && (
                     <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingTop: 8 }}>
-                      +{lowStockItems.length - 3} more items low on stock
+                      {t('dashboard.moreItemsLow', { count: lowStockItems.length - 3 })}
                     </Text>
                   )}
                   </View>
@@ -358,10 +429,10 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                       letterSpacing: 0.8, 
                       textTransform: 'uppercase',
                     }}>
-                      Recent Events
+                      {t('dashboard.recentEvents')}
                     </Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Events')}>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>View All</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>{t('common.viewAll')}</Text>
                     </TouchableOpacity>
                   </View>
                   <View style={[{ 
@@ -410,10 +481,10 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
-                      Quick Sale
+                      {t('dashboard.quickSale')}
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 2 }}>
-                      Record a sale in seconds
+                      {t('dashboard.quickSaleSubtitle')}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />

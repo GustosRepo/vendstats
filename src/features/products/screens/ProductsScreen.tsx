@@ -13,8 +13,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { PressableScale, AnimatedListItem } from '../../../components/animations';
-import { getQuickSaleItems, deleteQuickSaleItem } from '../../../storage';
+import { getQuickSaleItems, deleteQuickSaleItem, getLowStockThreshold } from '../../../storage';
+import { hasPremiumAccess } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../utils/currency';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
@@ -25,8 +27,12 @@ const NUM_COLUMNS = width >= 768 ? 5 : 3;
 const ITEM_SIZE = (width - GRID_GAP * (NUM_COLUMNS + 1)) / NUM_COLUMNS;
 
 export const ProductsScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const [products, setProducts] = useState<QuickSaleItem[]>([]);
+  const [outOfStockCount, setOutOfStockCount] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [stockThreshold, setStockThreshold] = useState(5);
 
   useFocusEffect(
     useCallback(() => {
@@ -36,7 +42,17 @@ export const ProductsScreen: React.FC = () => {
 
   const loadProducts = () => {
     const items = getQuickSaleItems();
+    const threshold = getLowStockThreshold();
     setProducts(items);
+    setStockThreshold(threshold);
+
+    // Calculate stock alert counts (Pro only)
+    if (hasPremiumAccess()) {
+      const oos = items.filter(p => p.stockCount !== undefined && p.stockCount === 0).length;
+      const low = items.filter(p => p.stockCount !== undefined && p.stockCount > 0 && p.stockCount <= threshold).length;
+      setOutOfStockCount(oos);
+      setLowStockCount(low);
+    }
   };
 
   const handleAddProduct = () => {
@@ -50,17 +66,17 @@ export const ProductsScreen: React.FC = () => {
   const handleProductLongPress = (product: QuickSaleItem) => {
     Alert.alert(
       product.itemName,
-      `Cost: ${formatCurrency(product.defaultCost)}\nPrice: ${formatCurrency(product.defaultPrice)}\nStock: ${product.stockCount ?? 'N/A'}`,
+      `${t('items.cost')}: ${formatCurrency(product.defaultCost)}\n${t('items.price')}: ${formatCurrency(product.defaultPrice)}\n${t('items.onHand')}: ${product.stockCount ?? t('common.na')}`,
       [
-        { text: 'Edit', onPress: () => handleProductPress(product) },
+        { text: t('common.edit'), onPress: () => handleProductPress(product) },
         { 
-          text: 'Delete', 
+          text: t('common.delete'), 
           style: 'destructive',
           onPress: () => {
-            Alert.alert('Delete Product', `Delete "${product.itemName}"?`, [
-              { text: 'Cancel', style: 'cancel' },
+            Alert.alert(t('items.deleteItem'), t('items.deleteItemConfirm', { name: product.itemName }), [
+              { text: t('common.cancel'), style: 'cancel' },
               { 
-                text: 'Delete', 
+                text: t('common.delete'), 
                 style: 'destructive',
                 onPress: () => {
                   deleteQuickSaleItem(product.id);
@@ -70,12 +86,18 @@ export const ProductsScreen: React.FC = () => {
             ]);
           }
         },
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
       ]
     );
   };
 
-  const renderProductItem = ({ item, index }: { item: QuickSaleItem; index: number }) => (
+  const renderProductItem = ({ item, index }: { item: QuickSaleItem; index: number }) => {
+    const isOutOfStock = item.stockCount !== undefined && item.stockCount === 0;
+    const isLowStock = item.stockCount !== undefined && item.stockCount > 0 && item.stockCount <= stockThreshold;
+    const borderColor = isOutOfStock ? colors.stockOut : isLowStock ? colors.stockLow : colors.divider;
+    const borderW = (isOutOfStock || isLowStock) ? 2 : 1;
+
+    return (
     <AnimatedListItem index={index} type="scale" delay={50}>
       <PressableScale
         onPress={() => handleProductPress(item)}
@@ -88,8 +110,8 @@ export const ProductsScreen: React.FC = () => {
           backgroundColor: colors.surface,
           borderRadius: 8,
           overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: colors.divider,
+          borderWidth: borderW,
+          borderColor: borderColor,
         }}
       >
         {item.imageUri ? (
@@ -159,6 +181,7 @@ export const ProductsScreen: React.FC = () => {
       </PressableScale>
     </AnimatedListItem>
   );
+  };
 
   const EmptyState = () => (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
@@ -168,10 +191,10 @@ export const ProductsScreen: React.FC = () => {
         resizeMode="contain" 
       />
       <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: 8, textAlign: 'center' }}>
-        No Products Yet
+        {t('items.noItemsYet')}
       </Text>
       <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
-        Snap a photo of each product, set your prices, and you're ready for 1-tap sales!
+        {t('items.noItemsMessage')}
       </Text>
       <TouchableOpacity
         onPress={handleAddProduct}
@@ -186,7 +209,7 @@ export const ProductsScreen: React.FC = () => {
       >
         <Ionicons name="camera" size={20} color="#fff" style={{ marginRight: 8 }} />
         <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>
-          Add First Product
+          {t('items.addFirstItem')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -208,21 +231,38 @@ export const ProductsScreen: React.FC = () => {
         backgroundColor: colors.surface,
       }}>
         <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary }}>
-          Products
+          {t('items.title')}
         </Text>
-        <TouchableOpacity
-          onPress={handleAddProduct}
-          style={{
-            backgroundColor: colors.primary,
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {products.length > 0 && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('MenuDisplay')}
+              style={{
+                backgroundColor: colors.primaryLight,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="restaurant-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            onPress={handleAddProduct}
+            style={{
+              backgroundColor: colors.primary,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {products.length === 0 ? (
@@ -235,6 +275,53 @@ export const ProductsScreen: React.FC = () => {
           numColumns={NUM_COLUMNS}
           contentContainerStyle={{ padding: GRID_GAP / 2, paddingBottom: 160 }}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            (outOfStockCount > 0 || lowStockCount > 0) ? (
+              <View style={{
+                flexDirection: 'row',
+                marginHorizontal: GRID_GAP / 2,
+                marginBottom: 8,
+                gap: 8,
+              }}>
+                {outOfStockCount > 0 && (
+                  <View style={{
+                    flex: 1,
+                    backgroundColor: colors.stockOutBg,
+                    borderRadius: 12,
+                    padding: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: colors.stockOut + '30',
+                  }}>
+                    <Ionicons name="close-circle" size={18} color={colors.stockOut} style={{ marginRight: 8 }} />
+                    <View>
+                      <Text style={{ fontSize: 18, fontWeight: '700', color: colors.stockOut }}>{outOfStockCount}</Text>
+                      <Text style={{ fontSize: 11, color: colors.stockOut, fontWeight: '600' }}>{t('inventory.outOfStock')}</Text>
+                    </View>
+                  </View>
+                )}
+                {lowStockCount > 0 && (
+                  <View style={{
+                    flex: 1,
+                    backgroundColor: colors.stockLowBg,
+                    borderRadius: 12,
+                    padding: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: colors.stockLow + '30',
+                  }}>
+                    <Ionicons name="warning" size={18} color={colors.stockLow} style={{ marginRight: 8 }} />
+                    <View>
+                      <Text style={{ fontSize: 18, fontWeight: '700', color: colors.stockLow }}>{lowStockCount}</Text>
+                      <Text style={{ fontSize: 11, color: colors.stockLow, fontWeight: '600' }}>{t('inventory.lowStock')}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            ) : null
+          }
         />
       )}
     </SafeAreaView>

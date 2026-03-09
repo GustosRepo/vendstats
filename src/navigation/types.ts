@@ -14,7 +14,7 @@ export type TabParamList = {
 // Root Stack Navigator param list
 export type RootStackParamList = {
   Main: NavigatorScreenParams<TabParamList>;
-  CreateEvent: undefined;
+  CreateEvent: { duplicateFromEventId?: string } | undefined;
   EditEvent: { eventId: string };
   EventDetail: { eventId: string };
   AddSale: { eventId: string };
@@ -26,6 +26,11 @@ export type RootStackParamList = {
   EditProduct: { productId: string };
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
+  BestSellers: undefined;
+  EventComparison: undefined;
+  EventRanking: undefined;
+  MenuDisplay: undefined;
+  EventReport: { eventId: string };
 };
 
 // Screen props types

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { mmkvStorage } from './mmkv';
+import { mmkvStorage, bumpDataVersion } from './mmkv';
 import { Sale, CreateSaleInput, UpdateSaleInput, QuickSaleItem, STORAGE_KEYS } from '../types';
 
 // Get all sales
@@ -72,6 +72,7 @@ export const createSale = (input: CreateSaleInput): Sale => {
 
   sales.push(newSale);
   mmkvStorage.setJSON(STORAGE_KEYS.SALES, sales);
+  bumpDataVersion();
 
   return newSale;
 };
@@ -110,6 +111,7 @@ export const updateSale = (input: UpdateSaleInput): Sale | null => {
 
   sales[index] = updatedSale;
   mmkvStorage.setJSON(STORAGE_KEYS.SALES, sales);
+  bumpDataVersion();
 
   return updatedSale;
 };
@@ -124,16 +126,26 @@ export const deleteSale = (id: string): boolean => {
   }
 
   mmkvStorage.setJSON(STORAGE_KEYS.SALES, filteredSales);
+  bumpDataVersion();
   return true;
 };
 
-// Delete all sales for an event
+// Delete all sales for an event and clean up tracking
 export const deleteAllSalesForEvent = (eventId: string): number => {
   const sales = getAllSales();
   const filteredSales = sales.filter(sale => sale.eventId !== eventId);
   const deletedCount = sales.length - filteredSales.length;
 
   mmkvStorage.setJSON(STORAGE_KEYS.SALES, filteredSales);
+  bumpDataVersion();
+
+  // Clean up the EVENTS_WITH_SALES tracking array
+  const usedEvents = mmkvStorage.getJSON<string[]>(STORAGE_KEYS.EVENTS_WITH_SALES) || [];
+  const cleanedUsedEvents = usedEvents.filter(id => id !== eventId);
+  if (cleanedUsedEvents.length !== usedEvents.length) {
+    mmkvStorage.setJSON(STORAGE_KEYS.EVENTS_WITH_SALES, cleanedUsedEvents);
+  }
+
   return deletedCount;
 };
 

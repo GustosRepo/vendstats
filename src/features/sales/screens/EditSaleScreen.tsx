@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useTranslation } from 'react-i18next';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { InputField, PrimaryButton, Card } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -14,6 +15,7 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
 }) => {
   const { saleId } = route.params;
   const headerHeight = useHeaderHeight();
+  const { t } = useTranslation();
   
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -34,7 +36,7 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
       setOriginalQuantity(sale.quantity);
       setOriginalItemName(sale.itemName);
     } else {
-      Alert.alert('Error', 'Sale not found');
+      Alert.alert(t('common.error'), t('editSale.saleNotFound'));
       navigation.goBack();
     }
   }, [saleId, navigation]);
@@ -43,22 +45,22 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
     const newErrors: Record<string, string> = {};
 
     if (!itemName.trim()) {
-      newErrors.itemName = 'Item name is required';
+      newErrors.itemName = t('addSale.itemNameRequired');
     }
 
     const quantityNum = parseInt(quantity, 10);
     if (!quantity || isNaN(quantityNum) || quantityNum < 1) {
-      newErrors.quantity = 'Enter a valid quantity';
+      newErrors.quantity = t('addSale.validQuantity');
     }
 
     const salePriceNum = parseFloat(salePrice);
     if (!salePrice || isNaN(salePriceNum) || salePriceNum < 0) {
-      newErrors.salePrice = 'Enter a valid price';
+      newErrors.salePrice = t('addSale.validPrice');
     }
 
     const costNum = parseFloat(costPerItem);
     if (costPerItem && isNaN(costNum)) {
-      newErrors.costPerItem = 'Enter a valid cost';
+      newErrors.costPerItem = t('addSale.validCost');
     }
 
     setErrors(newErrors);
@@ -98,7 +100,7 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update sale. Please try again.');
+      Alert.alert(t('common.error'), t('editSale.updateError'));
     } finally {
       setLoading(false);
     }
@@ -106,12 +108,12 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Sale',
-      'Are you sure you want to delete this sale?',
+      t('editSale.deleteSale'),
+      t('editSale.deleteSaleConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             // Restore stock when deleting sale
@@ -136,71 +138,71 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
       <TexturePattern />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
         keyboardVerticalOffset={headerHeight}
       >
         <ScrollView
-          className="flex-1"
+          style={{ flex: 1 }}
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Item Details */}
           <Card variant="elevated" padding="lg" className="mb-4">
-            <Text className="text-lg font-semibold text-neutral-900 mb-4">
-              Sale Details
+            <Text className="text-lg font-semibold text-[#171717] mb-4">
+              {t('addSale.saleDetails')}
             </Text>
 
             <InputField
-              label="Item Name"
-              placeholder="e.g., Candle - Lavender"
+              label={t('addSale.itemName')}
+              placeholder={t('addSale.itemNamePlaceholder')}
               value={itemName}
               onChangeText={setItemName}
               error={errors.itemName}
-              containerClassName="mb-4"
+              containerStyle={{ marginBottom: 16 }}
             />
 
             <InputField
-              label="Quantity"
+              label={t('addSale.quantity')}
               placeholder="1"
               value={quantity}
               onChangeText={setQuantity}
               error={errors.quantity}
               keyboardType="number-pad"
-              containerClassName="mb-4"
+              containerStyle={{ marginBottom: 16 }}
             />
 
             <InputField
-              label="Sale Price ($)"
+              label={t('addSale.salePrice')}
               placeholder="0.00"
               value={salePrice}
               onChangeText={setSalePrice}
               error={errors.salePrice}
               keyboardType="decimal-pad"
-              helperText="Price per item"
-              containerClassName="mb-4"
+              helperText={t('addSale.pricePerItem')}
+              containerStyle={{ marginBottom: 16 }}
             />
 
             <InputField
-              label="Cost per Item ($)"
+              label={t('addSale.costPerItem')}
               placeholder="0.00"
               value={costPerItem}
               onChangeText={setCostPerItem}
               error={errors.costPerItem}
               keyboardType="decimal-pad"
-              helperText="Your cost to make/buy this item"
+              helperText={t('addSale.yourCost')}
             />
           </Card>
 
           {/* Preview */}
           {salePriceNum > 0 && (
             <Card variant="outlined" padding="md" className="mb-6">
-              <Text className="text-xs text-neutral-500 font-medium mb-2">PREVIEW</Text>
+              <Text className="text-xs text-[#737373] font-medium mb-2">{t('addSale.preview')}</Text>
               <View className="flex-row justify-between mb-1">
-                <Text className="text-neutral-600">Revenue</Text>
-                <Text className="font-semibold text-neutral-900">${revenue.toFixed(2)}</Text>
+                <Text style={{ color: colors.textSecondary }}>{t('common.revenue')}</Text>
+                <Text className="font-semibold text-[#171717]">${revenue.toFixed(2)}</Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-neutral-600">Profit</Text>
+                <Text style={{ color: colors.textSecondary }}>{t('common.profit')}</Text>
                 <Text className={`font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                   ${profit.toFixed(2)}
                 </Text>
@@ -210,14 +212,14 @@ export const EditSaleScreen: React.FC<RootStackScreenProps<'EditSale'>> = ({
 
           {/* Actions */}
           <PrimaryButton
-            title="Save Changes"
+            title={t('editSale.saveChanges')}
             onPress={handleSave}
             loading={loading}
             className="mb-3"
           />
 
           <PrimaryButton
-            title="Delete Sale"
+            title={t('editSale.deleteSale')}
             variant="danger"
             onPress={handleDelete}
           />

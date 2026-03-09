@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton, QuickSaleButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -19,6 +20,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   route,
 }) => {
   const { eventId } = route.params;
+  const { t } = useTranslation();
   
   const [quickItems, setQuickItems] = useState<QuickSaleItem[]>([]);
   const [recentSales, setRecentSales] = useState<{ name: string; price: number; qty: number }[]>([]);
@@ -98,7 +100,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
       <TexturePattern />
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
         {/* Session Total */}
         {recentSales.length > 0 && (
           <Card variant="elevated" padding="md" className="mb-6">
@@ -110,19 +112,19 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                   resizeMode="contain" 
                 />
                 <View>
-                  <Text className="text-xs text-neutral-500">SESSION TOTAL</Text>
-                  <Text className="text-2xl font-bold text-green-600">
+                  <Text style={{ fontSize: 12, color: colors.textTertiary }}>{t('quickSale.sessionTotal')}</Text>
+                  <Text style={{ fontSize: 24, fontWeight: '700', color: colors.growth }}>
                     {formatCurrency(totalRecentSales)}
                   </Text>
                 </View>
               </View>
-              <Text className="text-neutral-400">{totalItemsSold} items</Text>
+              <Text style={{ color: colors.textMuted }}>{t('quickSale.itemsCount', { count: totalItemsSold })}</Text>
             </View>
             
             {/* Recent sales list */}
-            <View className="mt-3 pt-3 border-t border-neutral-100">
+            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.divider }}>
               {recentSales.slice(0, 3).map((sale, index) => (
-                <Text key={index} className="text-sm text-neutral-500">
+                <Text key={index} style={{ fontSize: 14, color: colors.textTertiary }}>
                   + {sale.qty}x {sale.name} • {formatCurrency(sale.price)}
                 </Text>
               ))}
@@ -132,17 +134,17 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
 
         {/* Quick Sale Buttons */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text className="text-lg font-semibold text-neutral-900">
-            Quick Sale
+          <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary }}>
+            {t('quickSale.title')}
           </Text>
           <TouchableOpacity onPress={() => navigation.navigate('EditEventProducts', { eventId })}>
             <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 14 }}>
-              Edit Products
+              {t('quickSale.editItems')}
             </Text>
           </TouchableOpacity>
         </View>
-        <Text className="text-sm text-neutral-500 mb-4">
-          Tap to log a sale instantly
+        <Text style={{ fontSize: 14, color: colors.textTertiary, marginBottom: 16 }}>
+          {t('quickSale.subtitle')}
         </Text>
 
         {quickItems.length === 0 ? (
@@ -153,8 +155,8 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                 style={{ width: 80, height: 80, marginBottom: 12 }} 
                 resizeMode="contain" 
               />
-              <Text className="text-center text-neutral-500">
-                No quick sale items yet. Add your most common products for 1-tap sales.
+              <Text style={{ textAlign: "center", color: colors.textTertiary }}>
+                {t('quickSale.emptyState')}
               </Text>
             </View>
           </Card>
@@ -175,7 +177,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
 
         {/* Manual Entry Link */}
         <PrimaryButton
-          title="Add Custom Sale"
+          title={t('quickSale.customSale')}
           variant="secondary"
           onPress={() => {
             navigation.replace('AddSale', { eventId });
@@ -186,7 +188,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
       {/* Done Button */}
       <View className="px-5 pb-8">
         <PrimaryButton
-          title="Done"
+          title={t('common.done')}
           size="lg"
           onPress={() => navigation.goBack()}
         />
@@ -241,7 +243,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                     {selectedItem.itemName}
                   </Text>
                   <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
-                    {formatCurrency(selectedItem.defaultPrice)} each
+                    {t('quickSale.priceEach', { price: formatCurrency(selectedItem.defaultPrice) })}
                   </Text>
                   {selectedItem.stockCount !== undefined && (
                     <View style={{ 
@@ -264,7 +266,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                         color: selectedItem.stockCount > 0 ? colors.primary : colors.error,
                         marginLeft: 4,
                       }}>
-                        {selectedItem.stockCount} in stock
+                        {t('quickSale.inStock', { count: selectedItem.stockCount })}
                       </Text>
                     </View>
                   )}
@@ -282,7 +284,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                   }}>
                     <Ionicons name="warning" size={16} color={colors.error} />
                     <Text style={{ color: colors.error, fontSize: 12, marginLeft: 8, flex: 1 }}>
-                      Selling more than you have in stock!
+                      {t('quickSale.lowStockWarning')}
                     </Text>
                   </View>
                 )}
@@ -346,7 +348,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                   alignItems: 'center',
                 }}>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    TOTAL
+                    {t('quickSale.total')}
                   </Text>
                   <Text style={{ fontSize: 28, fontWeight: '700', color: colors.success }}>
                     {formatCurrency(selectedItem.defaultPrice * quantity)}
@@ -365,7 +367,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontWeight: '600', color: colors.textSecondary }}>Cancel</Text>
+                    <Text style={{ fontWeight: '600', color: colors.textSecondary }}>{t('common.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={confirmSale}
@@ -377,7 +379,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontWeight: '600', color: '#fff' }}>Log Sale</Text>
+                    <Text style={{ fontWeight: '600', color: '#fff' }}>{t('quickSale.logSale')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

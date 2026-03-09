@@ -25,3 +25,58 @@ export const getLowStockThreshold = (): number => {
 export const setLowStockThreshold = (threshold: number): void => {
   updateAppSettings({ lowStockThreshold: threshold });
 };
+
+// Get saved language preference
+export const getLanguage = (): string | undefined => {
+  const settings = getAppSettings();
+  return settings.language;
+};
+
+// Set language preference
+export const setLanguage = (language: string): void => {
+  updateAppSettings({ language });
+};
+
+// Get QR code URI
+export const getQrCodeUri = (): string | undefined => {
+  const settings = getAppSettings();
+  return settings.qrCodeUri;
+};
+
+// Set QR code URI
+export const setQrCodeUri = (uri: string | undefined): void => {
+  updateAppSettings({ qrCodeUri: uri });
+};
+
+// Get vendor category
+export const getVendorCategory = (): string | undefined => {
+  const settings = getAppSettings();
+  return settings.vendorCategory;
+};
+
+// Set vendor category
+export const setVendorCategory = (category: string): void => {
+  updateAppSettings({ vendorCategory: category as any });
+};
+
+// Get saved currency preference
+export const getCurrency = (): string => {
+  const settings = getAppSettings();
+  return settings.currency || 'USD';
+};
+
+// Set currency preference
+export const setCurrency = (currency: string): void => {
+  updateAppSettings({ currency });
+};
+
+// Get reminder setting
+export const getReminderEnabled = (): boolean => {
+  const settings = getAppSettings();
+  return settings.reminderEnabled || false;
+};
+
+// Set reminder setting
+export const setReminderEnabled = (enabled: boolean): void => {
+  updateAppSettings({ reminderEnabled: enabled });
+};

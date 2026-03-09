@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { formatCurrency } from '../../utils/currency';
-import { format } from 'date-fns';
+import { formatDate } from '../../utils/date';
+import { colors, radius, shadows } from '../../theme';
 
 interface EventCardProps {
   name: string;
@@ -12,7 +13,7 @@ interface EventCardProps {
   onPress: () => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({
+export const EventCard: React.FC<EventCardProps> = React.memo(({
   name,
   date,
   revenue,
@@ -21,46 +22,56 @@ export const EventCard: React.FC<EventCardProps> = ({
   onPress,
 }) => {
   const isProfitable = profit >= 0;
-  const formattedDate = format(new Date(date), 'MMM d, yyyy');
+  const formattedDate = formatDate(new Date(date), 'MMM d, yyyy');
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-white rounded-xl p-4 shadow-sm mb-3 active:bg-neutral-50"
+      accessibilityRole="button"
+      accessibilityLabel={`${name}, ${formattedDate}, ${formatCurrency(profit)} profit`}
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: radius.xl,
+        padding: 16,
+        marginBottom: 12,
+        ...shadows.sm,
+      }}
     >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1 mr-4">
-          <Text className="text-lg font-semibold text-neutral-900" numberOfLines={1}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <View style={{ flex: 1, marginRight: 16 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>
             {name}
           </Text>
-          <Text className="text-sm text-neutral-500 mt-0.5">
+          <Text style={{ fontSize: 14, color: colors.textTertiary, marginTop: 2 }}>
             {formattedDate}
           </Text>
         </View>
         
-        <View className="items-end">
-          <Text className={`text-xl font-bold ${isProfitable ? 'text-green-600' : 'text-red-500'}`}>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: isProfitable ? colors.growth : colors.danger }}>
             {formatCurrency(profit)}
           </Text>
-          <Text className="text-xs text-neutral-400">profit</Text>
+          <Text style={{ fontSize: 12, color: colors.textMuted }}>profit</Text>
         </View>
       </View>
 
-      <View className="flex-row">
-        <View className="flex-1">
-          <Text className="text-xs text-neutral-400">Revenue</Text>
-          <Text className="text-sm font-medium text-neutral-700">
+      <View style={{ flexDirection: 'row' }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 12, color: colors.textMuted }}>Revenue</Text>
+          <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSecondary }}>
             {formatCurrency(revenue)}
           </Text>
         </View>
         
-        <View className="flex-1">
-          <Text className="text-xs text-neutral-400">Sales</Text>
-          <Text className="text-sm font-medium text-neutral-700">
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 12, color: colors.textMuted }}>Sales</Text>
+          <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSecondary }}>
             {salesCount} items
           </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
-};
+});
+
+EventCard.displayName = 'EventCard';

@@ -5,10 +5,11 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { Card, InputField, PrimaryButton } from '../../../components';
 import { getQuickSaleItems, updateQuickSaleItem, deleteQuickSaleItem } from '../../../storage';
-import { QuickSaleItem } from '../../../types';
+import { QuickSaleItem, Ingredient } from '../../../types';
 import { colors } from '../../../theme';
 
 type RouteParams = {
@@ -16,6 +17,7 @@ type RouteParams = {
 };
 
 export const EditProductScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RouteParams, 'EditProduct'>>();
   const { productId } = route.params;
@@ -27,6 +29,8 @@ export const EditProductScreen: React.FC = () => {
   const [sellPrice, setSellPrice] = useState('');
   const [stockCount, setStockCount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ingredients, setIngredients] = useState<{ name: string; cost: string }[]>([]);
+  const [showIngredients, setShowIngredients] = useState(false);
 
   useEffect(() => {
     loadProduct();
@@ -41,6 +45,13 @@ export const EditProductScreen: React.FC = () => {
       setSellPrice(product.defaultPrice.toString());
       setImageUri(product.imageUri || null);
       setStockCount(product.stockCount !== undefined ? product.stockCount.toString() : '');
+      if (product.ingredients && product.ingredients.length > 0) {
+        setIngredients(product.ingredients.map(ing => ({
+          name: ing.name,
+          cost: ing.cost.toString(),
+        })));
+        setShowIngredients(true);
+      }
     }
   };
 
@@ -48,7 +59,7 @@ export const EditProductScreen: React.FC = () => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Camera access is required to take product photos');
+        Alert.alert(t('addItem.permissionNeeded'), t('addItem.cameraPermission'));
         return false;
       }
     }
@@ -84,41 +95,68 @@ export const EditProductScreen: React.FC = () => {
 
   const handleShowImagePicker = () => {
     Alert.alert(
-      'Change Product Photo',
-      'How would you like to add a photo?',
+      t('editItem.changePhoto'),
+      t('addItem.addPhotoMessage'),
       [
-        { text: 'Take Photo', onPress: handleTakePhoto },
-        { text: 'Choose from Library', onPress: handlePickImage },
-        { text: 'Remove Photo', style: 'destructive', onPress: () => setImageUri(null) },
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('addItem.takePhoto'), onPress: handleTakePhoto },
+        { text: t('addItem.chooseFromLibrary'), onPress: handlePickImage },
+        { text: t('addItem.removePhoto'), style: 'destructive', onPress: () => setImageUri(null) },
+        { text: t('common.cancel'), style: 'cancel' },
       ]
     );
   };
 
+  const addIngredient = () => {
+    setIngredients(prev => [...prev, { name: '', cost: '' }]);
+  };
+
+  const updateIngredientField = (index: number, field: 'name' | 'cost', value: string) => {
+    setIngredients(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const removeIngredient = (index: number) => {
+    setIngredients(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const ingredientTotal = ingredients.reduce((sum, ing) => sum + (parseFloat(ing.cost) || 0), 0);
+
+  const applyIngredientCost = () => {
+    setCostPrice(ingredientTotal.toFixed(2));
+  };
+
   const handleSave = async () => {
     if (!itemName.trim()) {
-      Alert.alert('Missing Info', 'Please enter a product name');
+      Alert.alert(t('addItem.missingInfo'), t('addItem.enterItemName'));
       return;
     }
     if (!sellPrice) {
-      Alert.alert('Missing Info', 'Please enter a selling price');
+      Alert.alert(t('addItem.missingInfo'), t('addItem.enterSellingPrice'));
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const parsedIngredients: Ingredient[] = ingredients
+        .filter(ing => ing.name.trim() && parseFloat(ing.cost) > 0)
+        .map(ing => ({ name: ing.name.trim(), cost: parseFloat(ing.cost) || 0 }));
+
       updateQuickSaleItem(productId, {
         itemName: itemName.trim(),
         defaultPrice: parseFloat(sellPrice) || 0,
         defaultCost: parseFloat(costPrice) || 0,
         imageUri: imageUri || undefined,
         stockCount: stockCount ? parseInt(stockCount, 10) : undefined,
+        ingredients: parsedIngredients.length > 0 ? parsedIngredients : undefined,
       });
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update product');
+      Alert.alert(t('common.error'), t('editItem.updateError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -126,12 +164,12 @@ export const EditProductScreen: React.FC = () => {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Product',
-      `Are you sure you want to delete "${itemName}"?`,
+      t('editItem.deleteItem'),
+      t('editItem.deleteConfirm', { name: itemName }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             deleteQuickSaleItem(productId);
@@ -213,10 +251,10 @@ export const EditProductScreen: React.FC = () => {
                 <Ionicons name="camera" size={36} color={colors.copper} />
               </View>
               <Text style={{ fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 }}>
-                Tap to Add Photo
+                {t('addItem.tapToAddPhoto')}
               </Text>
               <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                Take a photo or choose from library
+                {t('addItem.tapToAddPhotoSubtitle')}
               </Text>
             </View>
           )}
@@ -225,14 +263,14 @@ export const EditProductScreen: React.FC = () => {
         {/* Product Details */}
         <Card variant="elevated" padding="lg" className="mb-4">
           <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 16 }}>
-            Product Details
+            {t('addItem.itemDetails')}
           </Text>
           
           <InputField
-            label="Product Name"
+            label={t('addItem.itemName')}
             value={itemName}
             onChangeText={setItemName}
-            placeholder="e.g., Hot Dog, Lemonade, T-Shirt"
+            placeholder={t('addItem.itemNamePlaceholder')}
             autoCapitalize="words"
           />
         </Card>
@@ -240,13 +278,13 @@ export const EditProductScreen: React.FC = () => {
         {/* Pricing Section */}
         <Card variant="elevated" padding="lg" className="mb-4">
           <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 16 }}>
-            Pricing
+            {t('addItem.pricing')}
           </Text>
 
           <View className="flex-row gap-3">
             <View className="flex-1">
               <InputField
-                label="Cost Price"
+                label={t('addItem.costPrice')}
                 value={costPrice}
                 onChangeText={setCostPrice}
                 placeholder="0.00"
@@ -255,7 +293,7 @@ export const EditProductScreen: React.FC = () => {
             </View>
             <View className="flex-1">
               <InputField
-                label="Sell Price"
+                label={t('addItem.sellPrice')}
                 value={sellPrice}
                 onChangeText={setSellPrice}
                 placeholder="0.00"
@@ -278,7 +316,7 @@ export const EditProductScreen: React.FC = () => {
               }}
             >
               <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-                Profit per unit
+                {t('addItem.profitPerUnit')}
               </Text>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={{ 
@@ -290,7 +328,7 @@ export const EditProductScreen: React.FC = () => {
                 </Text>
                 {profitPercent !== '—' && (
                   <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                    {profitPercent}% margin
+                    {profitPercent}{t('addItem.margin')}
                   </Text>
                 )}
               </View>
@@ -298,17 +336,111 @@ export const EditProductScreen: React.FC = () => {
           )}
         </Card>
 
+        {/* Ingredient Cost Calculator */}
+        <Card variant="elevated" padding="lg" className="mb-4">
+          <TouchableOpacity
+            onPress={() => setShowIngredients(!showIngredients)}
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="calculator-outline" size={20} color={colors.primary} />
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
+                {t('ingredients.title')}
+              </Text>
+            </View>
+            <Ionicons name={showIngredients ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          {showIngredients && (
+            <View style={{ marginTop: 16 }}>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 12 }}>
+                {t('ingredients.subtitle')}
+              </Text>
+
+              {ingredients.map((ing, index) => (
+                <View key={index} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <View style={{ flex: 2 }}>
+                    <InputField
+                      placeholder={t('ingredients.namePlaceholder')}
+                      value={ing.name}
+                      onChangeText={(val) => updateIngredientField(index, 'name', val)}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <InputField
+                      placeholder="0.00"
+                      value={ing.cost}
+                      onChangeText={(val) => updateIngredientField(index, 'cost', val)}
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                  <TouchableOpacity onPress={() => removeIngredient(index)} style={{ padding: 4 }}>
+                    <Ionicons name="close-circle" size={22} color={colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              <TouchableOpacity
+                onPress={addIngredient}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingVertical: 10,
+                }}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 14 }}>
+                  {t('ingredients.addIngredient')}
+                </Text>
+              </TouchableOpacity>
+
+              {ingredients.length > 0 && ingredientTotal > 0 && (
+                <View style={{
+                  marginTop: 12,
+                  padding: 12,
+                  backgroundColor: colors.primary + '12',
+                  borderRadius: 10,
+                }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary }}>
+                      {t('ingredients.totalCost')}
+                    </Text>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary }}>
+                      ${ingredientTotal.toFixed(2)}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={applyIngredientCost}
+                    style={{
+                      marginTop: 10,
+                      backgroundColor: colors.primary,
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>
+                      {t('ingredients.applyAsCost')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+        </Card>
+
         {/* Stock Section */}
         <Card variant="elevated" padding="lg" className="mb-6">
           <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 16 }}>
-            Inventory
+            {t('editItem.inventory')}
           </Text>
           
           <InputField
-            label="Current Stock"
+            label={t('editItem.currentCount')}
             value={stockCount}
             onChangeText={setStockCount}
-            placeholder="How many do you have?"
+            placeholder={t('addItem.howManyDoYouHave')}
             keyboardType="number-pad"
 
           />
@@ -316,7 +448,7 @@ export const EditProductScreen: React.FC = () => {
 
         {/* Save Button */}
         <PrimaryButton
-          title={isSubmitting ? 'Saving...' : 'Save Changes'}
+          title={isSubmitting ? t('common.saving') : t('editItem.saveChanges')}
           onPress={handleSave}
           disabled={isSubmitting}
         />
@@ -330,7 +462,7 @@ export const EditProductScreen: React.FC = () => {
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: colors.error, fontWeight: '600' }}>Delete Product</Text>
+          <Text style={{ color: colors.error, fontWeight: '600' }}>{t('editItem.deleteItem')}</Text>
         </TouchableOpacity>
       </ScrollView>
       </KeyboardAvoidingView>

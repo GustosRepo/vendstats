@@ -1,7 +1,7 @@
-import { mmkvStorage } from './mmkv';
+import { mmkvStorage, bumpDataVersion } from './mmkv';
 import { SubscriptionState, STORAGE_KEYS } from '../types';
 import { TRIAL_DURATION_DAYS, FREE_TIER_LIMITS } from '../constants';
-import { getTotalUsedEventsCount } from './sales';
+import { getQuickSaleItems } from './sales';
 
 const DEFAULT_SUBSCRIPTION_STATE: SubscriptionState = {
   status: 'none',
@@ -75,6 +75,7 @@ export const activateSubscription = (): SubscriptionState => {
   };
 
   saveSubscriptionState(state);
+  bumpDataVersion();
   return state;
 };
 
@@ -89,6 +90,7 @@ export const expireSubscription = (): SubscriptionState => {
   };
 
   saveSubscriptionState(state);
+  bumpDataVersion();
   return state;
 };
 
@@ -108,11 +110,7 @@ export const hasPremiumAccess = (): boolean => {
 };
 
 // Check if should show paywall
-export const shouldShowPaywall = (hasCreatedEvent: boolean): boolean => {
-  if (!hasCreatedEvent) {
-    return false;
-  }
-
+export const shouldShowPaywall = (): boolean => {
   return !hasPremiumAccess();
 };
 
@@ -121,24 +119,16 @@ export const resetSubscription = (): void => {
   saveSubscriptionState(DEFAULT_SUBSCRIPTION_STATE);
 };
 
-// Check if user can create an event (1 free event, then paywall)
-export const canCreateEvent = (currentEventCount: number): boolean => {
-  // Premium users can create unlimited events
-  if (hasPremiumAccess()) {
-    return true;
-  }
-  
-  // Check if user has already used their free event (even if deleted)
-  const usedEventsCount = getTotalUsedEventsCount();
-  if (usedEventsCount >= FREE_TIER_LIMITS.MAX_EVENTS) {
-    return false;
-  }
-  
-  // Free users get limited events
-  return currentEventCount < FREE_TIER_LIMITS.MAX_EVENTS;
+// Check if user can add more items (10 free, then Pro)
+export const canAddItem = (): boolean => {
+  if (hasPremiumAccess()) return true;
+  const items = getQuickSaleItems();
+  return items.length < FREE_TIER_LIMITS.MAX_ITEMS;
 };
 
-// Check if paywall should show for event creation
-export const shouldShowEventPaywall = (currentEventCount: number): boolean => {
-  return !canCreateEvent(currentEventCount);
+// Get remaining free item slots
+export const getRemainingFreeItems = (): number => {
+  if (hasPremiumAccess()) return Infinity;
+  const items = getQuickSaleItems();
+  return Math.max(0, FREE_TIER_LIMITS.MAX_ITEMS - items.length);
 };

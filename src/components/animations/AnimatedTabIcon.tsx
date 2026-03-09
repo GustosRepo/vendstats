@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -12,6 +13,7 @@ interface AnimatedTabIconProps {
   size: number;
   color: string;
   focused: boolean;
+  badge?: number;
 }
 
 export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
@@ -19,6 +21,7 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
   size,
   color,
   focused,
+  badge,
 }) => {
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
@@ -55,6 +58,24 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
   return (
     <Animated.View style={animatedStyle}>
       <Ionicons name={name} size={size} color={color} />
+      {badge !== undefined && badge > 0 && (
+        <View style={{
+          position: 'absolute',
+          top: -6,
+          right: -10,
+          backgroundColor: '#EF4444',
+          borderRadius: 9,
+          minWidth: 18,
+          height: 18,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 4,
+        }}>
+          <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
+            {badge > 99 ? '99+' : badge}
+          </Text>
+        </View>
+      )}
     </Animated.View>
   );
 };

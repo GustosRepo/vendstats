@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
@@ -14,6 +15,7 @@ export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventPr
   route,
 }) => {
   const { eventId } = route.params;
+  const { t } = useTranslation();
   
   const [allProducts, setAllProducts] = useState<QuickSaleItem[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -57,9 +59,9 @@ export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventPr
     });
     
     Alert.alert(
-      'Products Updated',
-      `${selectedProductIds.length} products selected for this event.`,
-      [{ text: 'OK', onPress: () => navigation.goBack() }]
+      t('editEventItems.itemsUpdated'),
+      t('editEventItems.itemsUpdatedMessage', { count: selectedProductIds.length }),
+      [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
     );
   };
 
@@ -69,14 +71,14 @@ export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventPr
         <TexturePattern />
         <View className="flex-1 justify-center items-center px-5">
           <Ionicons name="cube-outline" size={64} color={colors.copper} />
-          <Text className="text-lg font-semibold text-neutral-900 mt-4 mb-2">
-            No Products Yet
+          <Text className="text-lg font-semibold text-[#171717] mt-4 mb-2">
+            {t('editEventItems.noItemsYet')}
           </Text>
-          <Text className="text-center text-neutral-500 mb-6">
-            Add products in the Products tab first, then come back to select them for this event.
+          <Text className="text-center text-[#737373] mb-6">
+            {t('editEventItems.noItemsMessage')}
           </Text>
           <PrimaryButton
-            title="Go Back"
+            title={t('common.goBack')}
             onPress={() => navigation.goBack()}
           />
         </View>
@@ -87,27 +89,27 @@ export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventPr
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
       <TexturePattern />
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }}>
-        <Text className="text-sm text-neutral-500 mb-6">
-          Select which products you brought to "{eventName}"
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
+        <Text className="text-sm text-[#737373] mb-6">
+          {t('editEventItems.selectItems', { eventName })}
         </Text>
 
         <Card variant="elevated" padding="lg" className="mb-6">
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <Text className="text-lg font-semibold text-neutral-900">
-              Products
+            <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary }}>
+              {t('editEventItems.sectionTitle')}
             </Text>
             <TouchableOpacity 
               onPress={selectedProductIds.length === allProducts.length ? deselectAllProducts : selectAllProducts}
             >
               <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 14 }}>
-                {selectedProductIds.length === allProducts.length ? 'Deselect All' : 'Select All'}
+                {selectedProductIds.length === allProducts.length ? t('createEvent.deselectAll') : t('createEvent.selectAll')}
               </Text>
             </TouchableOpacity>
           </View>
           
           <Text style={{ color: colors.textSecondary, fontSize: 13, marginBottom: 16 }}>
-            {selectedProductIds.length} of {allProducts.length} products selected
+            {t('createEvent.itemsSelected', { selected: selectedProductIds.length, total: allProducts.length })}
           </Text>
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -184,7 +186,7 @@ export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventPr
 
       <View className="px-5 pb-8">
         <PrimaryButton
-          title="Save Changes"
+          title={t('editEventItems.saveChanges')}
           size="lg"
           onPress={handleSave}
         />

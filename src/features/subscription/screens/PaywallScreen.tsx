@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -13,6 +14,7 @@ const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev
 const PRIVACY_POLICY_URL = 'https://www.code-werx.com/vendstats/privacy';
 
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [loadingOfferings, setLoadingOfferings] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
@@ -95,13 +97,13 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
   const plans = {
     monthly: {
       price: packages.monthly?.product?.priceString || '$4.99',
-      period: 'month',
+      period: t('paywall.month'),
       savings: null,
     },
     yearly: {
       price: packages.yearly?.product?.priceString || '$29.99', 
-      period: 'year',
-      savings: 'Save 50%',
+      period: t('paywall.year'),
+      savings: t('paywall.saveBadge'),
     },
   };
 
@@ -114,8 +116,8 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
       if (!selectedPackage) {
         console.warn('No package available for selected plan');
         Alert.alert(
-          'Subscription Unavailable',
-          'We could not load subscription options. Please try again in a moment.'
+          t('paywall.subscriptionUnavailable'),
+          t('paywall.subscriptionUnavailableMessage')
         );
         return;
       }
@@ -133,22 +135,22 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
         }
 
         if (result.error.code === 'EXPO_GO') {
-          Alert.alert('Purchase Sheet Unavailable', result.error.message);
+          Alert.alert(t('paywall.purchaseSheetUnavailable'), result.error.message);
           return;
         }
 
         if (result.error.code === 'NOT_CONFIGURED') {
-          Alert.alert('Billing Not Configured', result.error.message);
+          Alert.alert(t('paywall.billingNotConfigured'), result.error.message);
           return;
         }
 
-        Alert.alert('Purchase Failed', result.error.message || 'Unable to complete purchase. Please try again.');
+        Alert.alert(t('paywall.purchaseFailed'), result.error.message || t('paywall.purchaseFailedMessage'));
       } else {
-        Alert.alert('Purchase Failed', 'Unable to complete purchase. Please try again.');
+        Alert.alert(t('paywall.purchaseFailed'), t('paywall.purchaseFailedMessage'));
       }
     } catch (error) {
       console.error('Purchase error:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      Alert.alert(t('common.error'), t('paywall.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
@@ -161,14 +163,14 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
       const result = await restorePurchases();
       
       if (result.success && result.hasActiveSubscription) {
-        Alert.alert('Restored!', 'Your subscription has been restored.');
+        Alert.alert(t('paywall.restored'), t('paywall.restoredMessage'));
         navigation.goBack();
       } else {
-        Alert.alert('No Purchases', 'No active subscription found.');
+        Alert.alert(t('paywall.noPurchases'), t('paywall.noPurchasesMessage'));
       }
     } catch (error) {
       console.error('Restore error:', error);
-      Alert.alert('Error', 'Unable to restore purchases. Please try again.');
+      Alert.alert(t('common.error'), t('paywall.restoreError'));
     } finally {
       setLoading(false);
     }
@@ -195,17 +197,18 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
   };
 
   const features = [
-    { icon: '📊', title: 'Unlimited Events', description: 'Track as many events as you want' },
-    { icon: '📈', title: 'Advanced Stats', description: 'Deep insights into your performance' },
-    { icon: '📄', title: 'CSV Export', description: 'Export data for accounting' },
-    { icon: '☁️', title: 'Future Updates', description: 'Access to all new features' },
+    { icon: '�', title: t('paywall.unlimitedItems'), description: t('paywall.unlimitedItemsDesc') },
+    { icon: '📊', title: t('paywall.globalStats'), description: t('paywall.globalStatsDesc') },
+    { icon: '📄', title: t('paywall.csvExport'), description: t('paywall.csvExportDesc') },
+    { icon: '🔔', title: t('paywall.lowStockAlerts'), description: t('paywall.lowStockAlertsDesc') },
+    { icon: '📈', title: t('paywall.chartsInsights'), description: t('paywall.chartsInsightsDesc') },
   ];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
       <TexturePattern />
       <ScrollView 
-        className="flex-1" 
+        style={{ flex: 1 }} 
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
@@ -214,7 +217,7 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
           onPress={() => navigation.goBack()}
           className="absolute top-4 right-4 z-10 w-8 h-8 items-center justify-center"
         >
-          <Text className="text-2xl text-neutral-400">×</Text>
+          <Text style={{ fontSize: 24, color: colors.textMuted }}>×</Text>
         </TouchableOpacity>
 
         {/* Header */}
@@ -224,11 +227,11 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             style={{ width: 120, height: 120, marginBottom: 8 }} 
             resizeMode="contain" 
           />
-          <Text className="text-3xl font-bold text-neutral-900 text-center mb-2">
-            Ready to Keep Going? 💪
+          <Text style={{ fontSize: 30, fontWeight: "700", color: colors.textPrimary, textAlign: "center", marginBottom: 8 }}>
+            {t('paywall.headerTitle')}
           </Text>
-          <Text className="text-base text-neutral-500 text-center">
-            You've completed your free event! Upgrade to Pro to track unlimited events and unlock all features.
+          <Text style={{ fontSize: 16, color: colors.textTertiary, textAlign: "center" }}>
+            {t('paywall.headerSubtitle')}
           </Text>
         </View>
 
@@ -237,26 +240,26 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
           {features.map((feature, index) => (
             <View 
               key={index}
-              className="flex-row items-center py-4 border-b border-neutral-100"
+              style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}
             >
               <Text className="text-2xl mr-4">{feature.icon}</Text>
-              <View className="flex-1">
-                <Text className="text-base font-semibold text-neutral-900">
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
                   {feature.title}
                 </Text>
-                <Text className="text-sm text-neutral-500">
+                <Text style={{ fontSize: 14, color: colors.textTertiary }}>
                   {feature.description}
                 </Text>
               </View>
-              <Text className="text-green-500 text-xl">✓</Text>
+              <Text style={{ color: colors.growth, fontSize: 20 }}>✓</Text>
             </View>
           ))}
         </View>
 
         {/* Plan Selection */}
         <View className="px-6 mb-6">
-          <Text className="text-lg font-semibold text-neutral-900 mb-4 text-center">
-            Choose Your Plan
+          <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary, marginBottom: 16, textAlign: "center" }}>
+            {t('paywall.chooseYourPlan')}
           </Text>
 
           {/* Yearly Plan */}
@@ -264,14 +267,14 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             onPress={() => setSelectedPlan('yearly')}
             className={`
               border-2 rounded-xl p-4 mb-3
-              ${selectedPlan === 'yearly' ? 'border-blue-500 bg-blue-50' : 'border-neutral-200'}
+              ${selectedPlan === 'yearly' ? 'border-blue-500 bg-blue-50' : 'border-[#E5E7EB]'}
             `}
           >
             <View className="flex-row justify-between items-center">
               <View>
                 <View className="flex-row items-center">
-                  <Text className="text-lg font-semibold text-neutral-900">
-                    Yearly
+                  <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary }}>
+                    {t('paywall.yearly')}
                   </Text>
                   {plans.yearly.savings && (
                     <View className="bg-green-500 px-2 py-0.5 rounded ml-2">
@@ -281,13 +284,13 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
                     </View>
                   )}
                 </View>
-                <Text className="text-sm text-neutral-500">
+                <Text style={{ fontSize: 14, color: colors.textTertiary }}>
                   {plans.yearly.price} / {plans.yearly.period}
                 </Text>
               </View>
               <View className={`
                 w-6 h-6 rounded-full border-2
-                ${selectedPlan === 'yearly' ? 'border-blue-500 bg-blue-500' : 'border-neutral-300'}
+                ${selectedPlan === 'yearly' ? 'border-blue-500 bg-blue-500' : 'border-[#D1D5DB]'}
                 items-center justify-center
               `}>
                 {selectedPlan === 'yearly' && (
@@ -302,21 +305,21 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             onPress={() => setSelectedPlan('monthly')}
             className={`
               border-2 rounded-xl p-4
-              ${selectedPlan === 'monthly' ? 'border-blue-500 bg-blue-50' : 'border-neutral-200'}
+              ${selectedPlan === 'monthly' ? 'border-blue-500 bg-blue-50' : 'border-[#E5E7EB]'}
             `}
           >
             <View className="flex-row justify-between items-center">
               <View>
-                <Text className="text-lg font-semibold text-neutral-900">
-                  Monthly
+                <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary }}>
+                  {t('paywall.monthly')}
                 </Text>
-                <Text className="text-sm text-neutral-500">
+                <Text style={{ fontSize: 14, color: colors.textTertiary }}>
                   {plans.monthly.price} / {plans.monthly.period}
                 </Text>
               </View>
               <View className={`
                 w-6 h-6 rounded-full border-2
-                ${selectedPlan === 'monthly' ? 'border-blue-500 bg-blue-500' : 'border-neutral-300'}
+                ${selectedPlan === 'monthly' ? 'border-blue-500 bg-blue-500' : 'border-[#D1D5DB]'}
                 items-center justify-center
               `}>
                 {selectedPlan === 'monthly' && (
@@ -330,7 +333,7 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
         {/* CTA Button */}
         <View className="px-6 mb-4">
           <PrimaryButton
-            title={`Subscribe ${selectedPlan === 'yearly' ? plans.yearly.price : plans.monthly.price}/${selectedPlan === 'yearly' ? 'year' : 'month'}`}
+            title={t('paywall.subscribeCta', { price: selectedPlan === 'yearly' ? plans.yearly.price : plans.monthly.price, period: selectedPlan === 'yearly' ? t('paywall.year') : t('paywall.month') })}
             size="lg"
             onPress={handleSubscribe}
             loading={loading}
@@ -339,46 +342,45 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
         </View>
 
         {loadingOfferings && (
-          <Text className="px-6 mb-4 text-center text-xs text-neutral-500">
-            Subscription options are loading…
+          <Text className="px-6 mb-4 text-center text-xs text-[#737373]">
+            {t('paywall.loadingSubscription')}
           </Text>
         )}
 
         {offeringsUnavailable && (
-          <Text className="px-6 mb-4 text-center text-xs text-neutral-500">
-            Subscription options are currently unavailable. Please try again shortly.
+          <Text className="px-6 mb-4 text-center text-xs text-[#737373]">
+            {t('paywall.unavailable')}
           </Text>
         )}
 
         {/* Restore & Terms */}
         <View className="items-center px-6">
           <TouchableOpacity onPress={handleRestorePurchases}>
-            <Text className="text-blue-500 font-medium mb-4">
-              Restore Purchases
+            <Text style={{ color: colors.copper, fontWeight: '500', marginBottom: 16 }}>
+              {t('paywall.restorePurchases')}
             </Text>
           </TouchableOpacity>
 
           <View className="w-full mb-4">
             <TouchableOpacity
               onPress={handleOpenPrivacyPolicy}
-              className="border border-neutral-200 rounded-lg px-4 py-3 mb-2 flex-row items-center justify-between"
+              className="border border-[#E5E7EB] rounded-lg px-4 py-3 mb-2 flex-row items-center justify-between"
             >
-              <Text className="text-blue-500 text-sm font-medium">Privacy Policy</Text>
-              <Text className="text-blue-500 text-sm">↗</Text>
+              <Text style={{ color: colors.copper, fontSize: 14, fontWeight: '500' }}>{t('paywall.privacyPolicy')}</Text>
+              <Text style={{ color: colors.copper, fontSize: 14 }}>↗</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleOpenEula}
-              className="border border-neutral-200 rounded-lg px-4 py-3 flex-row items-center justify-between"
+              className="border border-[#E5E7EB] rounded-lg px-4 py-3 flex-row items-center justify-between"
             >
-              <Text className="text-blue-500 text-sm font-medium">Terms of Use (EULA)</Text>
-              <Text className="text-blue-500 text-sm">↗</Text>
+              <Text style={{ color: colors.copper, fontSize: 14, fontWeight: '500' }}>{t('paywall.termsOfUse')}</Text>
+              <Text style={{ color: colors.copper, fontSize: 14 }}>↗</Text>
             </TouchableOpacity>
           </View>
           
-          <Text className="text-xs text-neutral-400 text-center">
-            Payment will be charged to your Apple ID account at the confirmation of purchase. 
-            Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period.
+          <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: "center" }}>
+            {t('paywall.legalDisclaimer')}
           </Text>
         </View>
       </ScrollView>

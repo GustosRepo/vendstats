@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../utils/currency';
+import { colors, radius } from '../../theme';
 
 interface SaleItemProps {
   itemName: string;
@@ -11,7 +13,7 @@ interface SaleItemProps {
   onLongPress?: () => void;
 }
 
-export const SaleItem: React.FC<SaleItemProps> = ({
+export const SaleItem: React.FC<SaleItemProps> = React.memo(({
   itemName,
   quantity,
   salePrice,
@@ -19,6 +21,7 @@ export const SaleItem: React.FC<SaleItemProps> = ({
   onPress,
   onLongPress,
 }) => {
+  const { t } = useTranslation();
   const revenue = quantity * salePrice;
   const profit = revenue - (quantity * costPerItem);
   const isProfitable = profit >= 0;
@@ -27,27 +30,38 @@ export const SaleItem: React.FC<SaleItemProps> = ({
     <TouchableOpacity
       onPress={onPress}
       onLongPress={onLongPress}
-      className="bg-white rounded-lg p-3 mb-2 border border-neutral-100 active:bg-neutral-50"
+      accessibilityRole="button"
+      accessibilityLabel={`${itemName}, ${t('saleItem.quantityAt', { qty: quantity, price: formatCurrency(salePrice) })}, ${formatCurrency(revenue)}`}
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: radius.md,
+        padding: 12,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: colors.divider,
+      }}
     >
-      <View className="flex-row justify-between items-center">
-        <View className="flex-1 mr-3">
-          <Text className="text-base font-medium text-neutral-900" numberOfLines={1}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textPrimary }} numberOfLines={1}>
             {itemName}
           </Text>
-          <Text className="text-sm text-neutral-500">
-            {quantity}x @ {formatCurrency(salePrice)} each
+          <Text style={{ fontSize: 14, color: colors.textTertiary }}>
+            {t('saleItem.quantityAt', { qty: quantity, price: formatCurrency(salePrice) })}
           </Text>
         </View>
 
-        <View className="items-end">
-          <Text className="text-base font-semibold text-neutral-900">
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
             {formatCurrency(revenue)}
           </Text>
-          <Text className={`text-xs ${isProfitable ? 'text-green-600' : 'text-red-500'}`}>
-            {isProfitable ? '+' : ''}{formatCurrency(profit)} profit
+          <Text style={{ fontSize: 12, color: isProfitable ? colors.growth : colors.danger }}>
+            {isProfitable ? '+' : ''}{formatCurrency(profit)} {t('saleItem.profit')}
           </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
-};
+});
+
+SaleItem.displayName = 'SaleItem';
