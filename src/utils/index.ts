@@ -3,3 +3,4 @@ export * from './calculations';
 export * from './review';
 export * from './date';
 export * from './report';
+export * from './image';

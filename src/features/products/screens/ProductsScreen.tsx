@@ -246,7 +246,7 @@ export const ProductsScreen: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              <Ionicons name="restaurant-outline" size={20} color={colors.primary} />
+              <Ionicons name="storefront-outline" size={20} color={colors.primary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity

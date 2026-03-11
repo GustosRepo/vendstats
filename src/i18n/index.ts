@@ -53,4 +53,12 @@ export const changeLanguage = async (lang: SupportedLanguage) => {
   await i18n.changeLanguage(lang);
 };
 
+// Called after storage is initialized to apply the saved language
+export const restoreLanguage = async () => {
+  const saved = getInitialLanguage();
+  if (saved !== i18n.language) {
+    await i18n.changeLanguage(saved);
+  }
+};
+
 export default i18n;

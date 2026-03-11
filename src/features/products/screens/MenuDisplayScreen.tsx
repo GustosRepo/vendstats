@@ -34,7 +34,7 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
 
     const lines = products.map(p => `• ${p.itemName}  —  ${formatCurrency(p.defaultPrice)}`);
     const menu = [
-      `📋 ${t('menu.menuTitle')}`,
+      `�️ ${t('menu.menuTitle')}`,
       '',
       ...lines,
       '',
@@ -119,7 +119,7 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
                 color: colors.textPrimary,
                 letterSpacing: -0.5,
               }}>
-                📋 {t('menu.menuTitle')}
+                🛍️ {t('menu.menuTitle')}
               </Text>
               <View style={{
                 width: 40,

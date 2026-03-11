@@ -658,15 +658,15 @@ export default {
     predictedItems: 'Artículos Previstos',
   },
 
-  // Menu Display
+  // Product Display
   menu: {
-    title: 'Menú',
-    menuTitle: 'Nuestro Menú',
-    shareMenu: 'Compartir Menú',
+    title: 'Mis Productos',
+    menuTitle: 'Mis Productos',
+    shareMenu: 'Compartir Productos',
     shareAsImage: 'Compartir como Imagen',
     shareAsText: 'Compartir como Texto',
     noItems: 'Sin Artículos',
-    noItemsMessage: 'Agrega productos primero para generar tu menú.',
+    noItemsMessage: 'Agrega productos primero para generar tu lista de productos.',
     inStock: 'Disponible',
     soldOut: 'Agotado',
     poweredBy: 'Hecho con',
@@ -730,5 +730,12 @@ export default {
     changesBody: 'Podemos actualizar esta Política de Privacidad periódicamente. Te notificaremos de cualquier cambio publicando la nueva política dentro de la app.',
     contactTitle: 'Contáctanos',
     contactBody: 'Si tienes preguntas sobre esta Política de Privacidad, contáctanos en admin@code-wrx.com',
+  },
+
+  // Migration alerts
+  migration: {
+    photosTitle: 'Fotos de Productos Actualizadas',
+    photosMessage: 'Debido a esta actualización, algunas fotos de productos tuvieron que restablecerse. Puedes volver a agregarlas editando cada producto.\n\nHemos solucionado esto para que no vuelva a ocurrir. ¡Gracias por tu paciencia! 🙏',
+    photosButton: 'Entendido',
   },
 } as const;

@@ -11,6 +11,7 @@ import { Card, InputField, PrimaryButton } from '../../../components';
 import { getQuickSaleItems, updateQuickSaleItem, deleteQuickSaleItem } from '../../../storage';
 import { QuickSaleItem, Ingredient } from '../../../types';
 import { colors } from '../../../theme';
+import { persistProductImage } from '../../../utils/image';
 
 type RouteParams = {
   EditProduct: { productId: string };
@@ -141,6 +142,9 @@ export const EditProductScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Persist image to documents directory so it survives app updates
+      const persistedUri = imageUri ? await persistProductImage(imageUri) : undefined;
+
       const parsedIngredients: Ingredient[] = ingredients
         .filter(ing => ing.name.trim() && parseFloat(ing.cost) > 0)
         .map(ing => ({ name: ing.name.trim(), cost: parseFloat(ing.cost) || 0 }));
@@ -149,7 +153,7 @@ export const EditProductScreen: React.FC = () => {
         itemName: itemName.trim(),
         defaultPrice: parseFloat(sellPrice) || 0,
         defaultCost: parseFloat(costPrice) || 0,
-        imageUri: imageUri || undefined,
+        imageUri: persistedUri,
         stockCount: stockCount ? parseInt(stockCount, 10) : undefined,
         ingredients: parsedIngredients.length > 0 ? parsedIngredients : undefined,
       });

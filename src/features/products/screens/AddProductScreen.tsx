@@ -12,6 +12,7 @@ import { addQuickSaleItem } from '../../../storage';
 import { canAddItem, getRemainingFreeItems } from '../../../storage';
 import { colors } from '../../../theme';
 import { Ingredient } from '../../../types';
+import { persistProductImage } from '../../../utils/image';
 
 export const AddProductScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -117,6 +118,9 @@ export const AddProductScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Persist image to documents directory so it survives app updates
+      const persistedUri = imageUri ? await persistProductImage(imageUri) : undefined;
+
       const parsedIngredients: Ingredient[] = ingredients
         .filter(ing => ing.name.trim() && parseFloat(ing.cost) > 0)
         .map(ing => ({ name: ing.name.trim(), cost: parseFloat(ing.cost) || 0 }));
@@ -125,7 +129,7 @@ export const AddProductScreen: React.FC = () => {
         itemName: itemName.trim(),
         defaultPrice: parseFloat(sellPrice) || 0,
         defaultCost: parseFloat(costPrice) || 0,
-        imageUri: imageUri || undefined,
+        imageUri: persistedUri,
         stockCount: stockCount ? parseInt(stockCount, 10) : undefined,
         ingredients: parsedIngredients.length > 0 ? parsedIngredients : undefined,
       });
