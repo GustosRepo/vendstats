@@ -18,7 +18,7 @@ export const calculateEventStats = (event: Event, sales: Sale[]): EventStats => 
   }, 0);
 
   // Event expenses (booth fee + travel + supplies + misc)
-  const totalExpenses = event.boothFee + event.travelCost + (event.suppliesCost || 0) + (event.miscCost || 0);
+  const totalExpenses = (event.boothFee ?? 0) + (event.travelCost ?? 0) + (event.suppliesCost || 0) + (event.miscCost || 0);
 
   // Profit calculations
   const grossProfit = totalRevenue - totalCostOfGoods;
@@ -419,13 +419,13 @@ export const getExtendedStats = (events: Event[], allSales: Sale[]) => {
   // Profit margin
   const totalRevenue = allSales.reduce((sum, s) => sum + s.salePrice * s.quantity, 0);
   const totalCost = allSales.reduce((sum, s) => sum + s.costPerItem * s.quantity, 0);
-  const totalExpenses = events.reduce((sum, e) => sum + e.boothFee + e.travelCost + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
+  const totalExpenses = events.reduce((sum, e) => sum + (e.boothFee ?? 0) + (e.travelCost ?? 0) + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
   const netProfit = totalRevenue - totalCost - totalExpenses;
   const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
   
   // Expense breakdown
-  const totalBoothFees = events.reduce((sum, e) => sum + e.boothFee, 0);
-  const totalTravelCosts = events.reduce((sum, e) => sum + e.travelCost, 0);
+  const totalBoothFees = events.reduce((sum, e) => sum + (e.boothFee ?? 0), 0);
+  const totalTravelCosts = events.reduce((sum, e) => sum + (e.travelCost ?? 0), 0);
   const totalSuppliesCosts = events.reduce((sum, e) => sum + (e.suppliesCost || 0), 0);
   const totalMiscCosts = events.reduce((sum, e) => sum + (e.miscCost || 0), 0);
   
@@ -504,7 +504,8 @@ export const generateSmartInsights = (
   // 1. Day-of-week analysis: which day is most profitable?
   const dayProfits = new Map<number, { total: number; count: number }>();
   events.forEach(event => {
-    const day = new Date(event.date).getDay();
+    const d = new Date(event.date);
+    const day = isNaN(d.getTime()) ? 0 : d.getDay();
     const eventSales = allSales.filter(s => s.eventId === event.id);
     const stats = calculateEventStats(event, eventSales);
     const existing = dayProfits.get(day) || { total: 0, count: 0 };
@@ -533,7 +534,11 @@ export const generateSmartInsights = (
   }
   
   // 2. Margin trend: are margins improving or declining?
-  const sortedEvents = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const sortedEvents = [...events].sort((a, b) => {
+    const ta = new Date(a.date).getTime();
+    const tb = new Date(b.date).getTime();
+    return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+  });
   if (sortedEvents.length >= 4) {
     const half = Math.floor(sortedEvents.length / 2);
     const firstHalf = sortedEvents.slice(0, half);
@@ -590,7 +595,7 @@ export const generateSmartInsights = (
   
   // 4. High-expense warning: if expenses > 40% of revenue
   const totalRev = allSales.reduce((sum, s) => sum + s.quantity * s.salePrice, 0);
-  const totalExp = events.reduce((sum, e) => sum + e.boothFee + e.travelCost + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
+  const totalExp = events.reduce((sum, e) => sum + (e.boothFee ?? 0) + (e.travelCost ?? 0) + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
   if (totalRev > 0) {
     const expRatio = (totalExp / totalRev) * 100;
     if (expRatio > 40) {

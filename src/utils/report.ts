@@ -31,14 +31,24 @@ export interface ProReport extends FreeReport {
 /**
  * Generate the basic free-tier report data
  */
-export const generateFreeReport = (event: Event, stats: EventStats): FreeReport => ({
-  eventName: event.name,
-  date: formatDate(new Date(event.date), 'MMMM d, yyyy'),
-  revenue: formatCurrency(stats.totalRevenue),
-  expenses: formatCurrency(stats.totalExpenses + stats.totalCostOfGoods),
-  profit: formatCurrency(stats.netProfit),
-  isProfitable: stats.netProfit >= 0,
-});
+export const generateFreeReport = (event: Event, stats: EventStats): FreeReport => {
+  let dateStr: string;
+  try {
+    const d = new Date(event.date);
+    dateStr = isNaN(d.getTime()) ? event.date ?? '' : formatDate(d, 'MMMM d, yyyy');
+  } catch {
+    dateStr = event.date ?? '';
+  }
+
+  return {
+    eventName: event.name ?? '',
+    date: dateStr,
+    revenue: formatCurrency(stats.totalRevenue ?? 0),
+    expenses: formatCurrency((stats.totalExpenses ?? 0) + (stats.totalCostOfGoods ?? 0)),
+    profit: formatCurrency(stats.netProfit ?? 0),
+    isProfitable: (stats.netProfit ?? 0) >= 0,
+  };
+};
 
 /**
  * Generate the full pro-tier report data
@@ -87,10 +97,10 @@ export const generateProReport = (
     topSeller: stats.bestSellingItem
       ? { name: stats.bestSellingItem.itemName, quantity: stats.bestSellingItem.quantity }
       : null,
-    profitMargin: `${stats.profitMargin.toFixed(1)}%`,
-    sellThroughRate: avgSellThrough !== null ? `${avgSellThrough.toFixed(0)}%` : null,
-    totalUnits: stats.salesCount,
-    avgItemMargin: `${avgMargin.toFixed(1)}%`,
+    profitMargin: `${(stats.profitMargin ?? 0).toFixed(1)}%`,
+    sellThroughRate: avgSellThrough !== null ? `${(avgSellThrough ?? 0).toFixed(0)}%` : null,
+    totalUnits: stats.salesCount ?? 0,
+    avgItemMargin: `${(avgMargin ?? 0).toFixed(1)}%`,
     itemBreakdown,
     location: event.location,
     weather: event.weather,

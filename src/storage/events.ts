@@ -98,5 +98,9 @@ export const hasCreatedFirstEvent = (): boolean => {
 // Get events sorted by date (newest first)
 export const getEventsSortedByDate = (): Event[] => {
   const events = getAllEvents();
-  return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return events.sort((a, b) => {
+    const ta = new Date(b.date).getTime();
+    const tb = new Date(a.date).getTime();
+    return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+  });
 };

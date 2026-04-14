@@ -184,12 +184,15 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
     events.forEach(event => {
       const eventSales = sales.filter((s: any) => s.eventId === event.id);
       if (eventSales.length === 0) {
-        csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},,,,,,\n`;
+        csv += `"${event.name || ''}","${event.date || ''}",${event.boothFee ?? 0},${event.travelCost ?? 0},,,,,,\n`;
       } else {
         eventSales.forEach((sale: any) => {
-          const revenue = sale.quantity * sale.salePrice;
-          const profit = revenue - (sale.quantity * sale.costPerItem);
-          csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},"${sale.itemName}",${sale.quantity},${sale.salePrice},${sale.costPerItem},${revenue},${profit}\n`;
+          const qty = sale.quantity ?? 0;
+          const price = sale.salePrice ?? 0;
+          const cost = sale.costPerItem ?? 0;
+          const revenue = qty * price;
+          const profit = revenue - (qty * cost);
+          csv += `"${event.name || ''}","${event.date || ''}",${event.boothFee ?? 0},${event.travelCost ?? 0},"${sale.itemName || ''}",${qty},${price},${cost},${revenue},${profit}\n`;
         });
       }
     });
@@ -200,12 +203,12 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
     let csv = `${t('csv.eventName')},${t('csv.eventDate')},${t('csvExport.location')},${t('csv.boothFee')},${t('csv.travelCost')},${t('csvExport.supplies')},${t('csvExport.misc')},${t('csv.revenue')},${t('csv.profit')},${t('csvExport.itemsSold')}\n`;
     events.forEach(event => {
       const eventSales = sales.filter((s: any) => s.eventId === event.id);
-      const revenue = eventSales.reduce((sum: number, s: any) => sum + s.quantity * s.salePrice, 0);
-      const cost = eventSales.reduce((sum: number, s: any) => sum + s.quantity * s.costPerItem, 0);
-      const expenses = event.boothFee + event.travelCost + (event.suppliesCost || 0) + (event.miscCost || 0);
+      const revenue = eventSales.reduce((sum: number, s: any) => sum + (s.quantity ?? 0) * (s.salePrice ?? 0), 0);
+      const cost = eventSales.reduce((sum: number, s: any) => sum + (s.quantity ?? 0) * (s.costPerItem ?? 0), 0);
+      const expenses = (event.boothFee ?? 0) + (event.travelCost ?? 0) + (event.suppliesCost || 0) + (event.miscCost || 0);
       const profit = revenue - cost - expenses;
-      const itemsSold = eventSales.reduce((sum: number, s: any) => sum + s.quantity, 0);
-      csv += `"${event.name}","${event.date}","${event.location || ''}",${event.boothFee},${event.travelCost},${event.suppliesCost || 0},${event.miscCost || 0},${revenue},${profit},${itemsSold}\n`;
+      const itemsSold = eventSales.reduce((sum: number, s: any) => sum + (s.quantity ?? 0), 0);
+      csv += `"${event.name || ''}","${event.date || ''}","${event.location || ''}",${event.boothFee ?? 0},${event.travelCost ?? 0},${event.suppliesCost || 0},${event.miscCost || 0},${revenue},${profit},${itemsSold}\n`;
     });
     return csv;
   };
@@ -232,8 +235,8 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
   const buildExpensesCSV = (events: any[]) => {
     let csv = `${t('csv.eventName')},${t('csv.eventDate')},${t('csv.boothFee')},${t('csv.travelCost')},${t('csvExport.supplies')},${t('csvExport.misc')},${t('csvExport.totalExpenses')}\n`;
     events.forEach(event => {
-      const total = event.boothFee + event.travelCost + (event.suppliesCost || 0) + (event.miscCost || 0);
-      csv += `"${event.name}","${event.date}",${event.boothFee},${event.travelCost},${event.suppliesCost || 0},${event.miscCost || 0},${total}\n`;
+      const total = (event.boothFee ?? 0) + (event.travelCost ?? 0) + (event.suppliesCost || 0) + (event.miscCost || 0);
+      csv += `"${event.name || ''}","${event.date || ''}",${event.boothFee ?? 0},${event.travelCost ?? 0},${event.suppliesCost || 0},${event.miscCost || 0},${total}\n`;
     });
     return csv;
   };

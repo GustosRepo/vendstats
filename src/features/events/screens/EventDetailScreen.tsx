@@ -203,7 +203,7 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
     );
   }
 
-  const formattedDate = formatDate(new Date(event.date), 'EEEE, MMMM d, yyyy');
+  const formattedDate = (() => { try { const d = new Date(event.date); return isNaN(d.getTime()) ? (event.date ?? '') : formatDate(d, 'EEEE, MMMM d, yyyy'); } catch { return event.date ?? ''; } })();
   const isProfitable = stats.netProfit >= 0;
 
   return (
@@ -278,7 +278,7 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
               {formatCurrency(stats.netProfit)}
             </Text>
             <Text style={{ fontSize: 14, color: colors.textMuted, textAlign: "center", marginTop: 8 }}>
-              {t('eventDetail.marginPercent', { value: stats.profitMargin.toFixed(1) })}
+              {t('eventDetail.marginPercent', { value: (stats.profitMargin ?? 0).toFixed(1) })}
             </Text>
           </Card>
         </View>
@@ -396,7 +396,7 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
                       {item.name}
                     </Text>
                     <Text className="text-sm font-semibold" style={{ color: item.rate >= 70 ? colors.growth : item.rate >= 40 ? colors.warning : colors.textTertiary }}>
-                      {item.rate.toFixed(0)}%
+                      {(item.rate ?? 0).toFixed(0)}%
                     </Text>
                   </View>
                   <View style={{ height: 6, backgroundColor: colors.divider, borderRadius: 3, overflow: 'hidden' }}>

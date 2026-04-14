@@ -20,6 +20,14 @@ const localeMap: Record<string, Locale> = {
  * Drop-in replacement for date-fns `format()`.
  */
 export const formatDate = (date: Date | number, formatStr: string): string => {
-  const locale = localeMap[i18n.language] || enUS;
-  return dateFnsFormat(date, formatStr, { locale });
+  try {
+    const d = typeof date === 'number' ? new Date(date) : date;
+    if (!(d instanceof Date) || isNaN(d.getTime())) {
+      return '';
+    }
+    const locale = localeMap[i18n.language] || enUS;
+    return dateFnsFormat(d, formatStr, { locale });
+  } catch {
+    return '';
+  }
 };

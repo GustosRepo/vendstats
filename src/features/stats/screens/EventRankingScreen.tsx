@@ -178,7 +178,7 @@ export const EventRankingScreen: React.FC<RootStackScreenProps<'EventRanking'>> 
                       {formatCurrency(stats.netProfit)}
                     </Text>
                     <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 2 }}>
-                      {stats.profitMargin >= 0 ? '+' : ''}{stats.profitMargin.toFixed(1)}%
+                      {stats.profitMargin >= 0 ? '+' : ''}{(stats.profitMargin ?? 0).toFixed(1)}%
                     </Text>
                   </View>
                 </View>

@@ -49,7 +49,8 @@ export const formatCurrency = (
     maximumFractionDigits: showCents ? 2 : 0,
   });
 
-  return formatter.format(amount);
+  const safeAmount = (typeof amount === 'number' && !isNaN(amount)) ? amount : 0;
+  return formatter.format(safeAmount);
 };
 
 /**
@@ -88,5 +89,6 @@ export const parseCurrency = (value: string): number => {
  * Format percentage
  */
 export const formatPercentage = (value: number, decimals: number = 1): string => {
-  return `${value.toFixed(decimals)}%`;
+  const safeValue = (typeof value === 'number' && !isNaN(value)) ? value : 0;
+  return `${safeValue.toFixed(decimals)}%`;
 };

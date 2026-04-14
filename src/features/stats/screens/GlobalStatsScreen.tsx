@@ -105,7 +105,11 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
       setStats(globalStats);
 
       // Calculate real revenue growth (recent half vs early half of events)
-      const sorted = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const sorted = [...events].sort((a, b) => {
+        const ta = new Date(a.date).getTime();
+        const tb = new Date(b.date).getTime();
+        return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+      });
       if (sorted.length >= 2) {
         const mid = Math.floor(sorted.length / 2);
         const earlyRev = sorted.slice(0, mid).reduce((sum, e) => {
@@ -116,7 +120,8 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
         }, 0);
         if (earlyRev > 0) {
           const pct = ((recentRev - earlyRev) / earlyRev) * 100;
-          setRevenueGrowth((pct >= 0 ? '+' : '') + pct.toFixed(1) + '%');
+          const safePct = isNaN(pct) ? 0 : pct;
+          setRevenueGrowth((safePct >= 0 ? '+' : '') + safePct.toFixed(1) + '%');
         } else if (recentRev > 0) {
           setRevenueGrowth('+100%');
         } else {
@@ -165,8 +170,13 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
 
     // Filter events this month
     const monthEvents = events.filter(e => {
-      const d = new Date(e.date);
-      return isWithinInterval(d, { start: monthStart, end: monthEnd });
+      try {
+        const d = new Date(e.date);
+        if (isNaN(d.getTime())) return false;
+        return isWithinInterval(d, { start: monthStart, end: monthEnd });
+      } catch {
+        return false;
+      }
     });
 
     // Filter sales this month
@@ -175,7 +185,7 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
 
     const totalRevenue = monthSales.reduce((sum, s) => sum + s.quantity * s.salePrice, 0);
     const totalCost = monthSales.reduce((sum, s) => sum + s.quantity * s.costPerItem, 0);
-    const totalExpenses = monthEvents.reduce((sum, e) => sum + e.boothFee + e.travelCost + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
+    const totalExpenses = monthEvents.reduce((sum, e) => sum + (e.boothFee ?? 0) + (e.travelCost ?? 0) + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
     const netProfit = totalRevenue - totalCost - totalExpenses;
     const totalItems = monthSales.reduce((sum, s) => sum + s.quantity, 0);
 

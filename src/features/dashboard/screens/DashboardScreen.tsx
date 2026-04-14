@@ -129,7 +129,7 @@ const EventRow: React.FC<{
         {event.name}
       </Text>
       <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 3 }}>
-        {new Date(event.date).toLocaleDateString()}
+        {(() => { try { const d = new Date(event.date); return isNaN(d.getTime()) ? (event.date ?? '') : d.toLocaleDateString(); } catch { return event.date ?? ''; } })()}
       </Text>
     </View>
     <Text style={{ fontSize: 17, fontWeight: '700', color: profit >= 0 ? colors.growth : colors.loss, marginRight: 12 }}>
@@ -174,11 +174,15 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
       const eventSales = allSales.filter(s => s.eventId === event.id);
       const revenue = eventSales.reduce((sum, s) => sum + s.salePrice * s.quantity, 0);
       const costs = eventSales.reduce((sum, s) => sum + s.costPerItem * s.quantity, 0);
-      const expenses = event.boothFee + event.travelCost;
+      const expenses = (event.boothFee ?? 0) + (event.travelCost ?? 0);
       profits[event.id] = revenue - costs - expenses;
     });
 
-    setEvents(allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    setEvents(allEvents.sort((a, b) => {
+      const ta = new Date(b.date).getTime();
+      const tb = new Date(a.date).getTime();
+      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+    }));
     setStats(globalStats);
     setEventProfits(profits);
 

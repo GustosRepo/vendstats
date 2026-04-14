@@ -175,8 +175,8 @@ export const BestSellersScreen: React.FC<RootStackScreenProps<'BestSellers'>> = 
                   )}
                   {sortBy === 'margin' && (
                     <>
-                      <Text style={{ fontSize: 18, fontWeight: '700', color: item.profitMargin >= 50 ? colors.growth : item.profitMargin >= 20 ? colors.warning : colors.danger }}>
-                        {item.profitMargin.toFixed(0)}%
+                      <Text style={{ fontSize: 18, fontWeight: '700', color: (item.profitMargin ?? 0) >= 50 ? colors.growth : (item.profitMargin ?? 0) >= 20 ? colors.warning : colors.danger }}>
+                        {(item.profitMargin ?? 0).toFixed(0)}%
                       </Text>
                       <Text style={{ fontSize: 11, color: colors.textTertiary }}>{t('bestSellers.margin')}</Text>
                     </>
@@ -200,7 +200,7 @@ export const BestSellersScreen: React.FC<RootStackScreenProps<'BestSellers'>> = 
                 </View>
                 <View style={{ flex: 1, alignItems: 'flex-end' }}>
                   <Text style={{ fontSize: 11, color: colors.textTertiary }}>{t('bestSellers.margin')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary }}>{item.profitMargin.toFixed(0)}%</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary }}>{(item.profitMargin ?? 0).toFixed(0)}%</Text>
                 </View>
               </View>
             </Card>

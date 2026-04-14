@@ -78,7 +78,7 @@ export const EventComparisonScreen: React.FC<RootStackScreenProps<'EventComparis
             fontSize: 15, fontWeight: '700',
             color: tied ? colors.textPrimary : aWins ? colors.growth : colors.textSecondary,
           }}>
-            {isCurrency ? formatCurrency(valueA) : valueA.toFixed(1)}
+            {isCurrency ? formatCurrency(valueA) : (valueA ?? 0).toFixed(1)}
           </Text>
           {aWins && !tied && <Ionicons name="trophy" size={12} color={colors.growth} style={{ marginTop: 2 }} />}
         </View>
@@ -90,7 +90,7 @@ export const EventComparisonScreen: React.FC<RootStackScreenProps<'EventComparis
             fontSize: 15, fontWeight: '700',
             color: tied ? colors.textPrimary : bWins ? colors.growth : colors.textSecondary,
           }}>
-            {isCurrency ? formatCurrency(valueB) : valueB.toFixed(1)}
+            {isCurrency ? formatCurrency(valueB) : (valueB ?? 0).toFixed(1)}
           </Text>
           {bWins && !tied && <Ionicons name="trophy" size={12} color={colors.growth} style={{ marginTop: 2 }} />}
         </View>
