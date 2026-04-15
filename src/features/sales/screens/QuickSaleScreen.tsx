@@ -11,6 +11,7 @@ import { TexturePattern } from '../../../components/TexturePattern';
 import { getQuickSaleItems, quickCreateSale, getEventById, updateQuickSaleItem } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
+import { resolveProductImageUri } from '../../../utils/image';
 import { trackEventCompletedForReview } from '../../../utils';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
@@ -222,7 +223,7 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
                 <View style={{ alignItems: 'center', marginBottom: 20 }}>
                   {selectedItem.imageUri ? (
                     <Image
-                      source={{ uri: selectedItem.imageUri }}
+                      source={{ uri: resolveProductImageUri(selectedItem.imageUri) }}
                       style={{ width: 80, height: 80, borderRadius: 12, marginBottom: 12 }}
                       resizeMode="cover"
                     />

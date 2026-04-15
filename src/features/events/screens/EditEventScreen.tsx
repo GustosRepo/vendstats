@@ -10,6 +10,7 @@ import { TexturePattern } from '../../../components/TexturePattern';
 import { getEventById, updateEvent, deleteEvent, deleteAllSalesForEvent, eventHasSales } from '../../../storage';
 import { colors } from '../../../theme';
 import * as ImagePicker from 'expo-image-picker';
+import { persistReceiptPhoto, resolveStoredUri, deleteStoredFile } from '../../../utils/image';
 
 export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({ 
   navigation, 
@@ -66,20 +67,31 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') return;
             const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
-            if (!result.canceled && result.assets[0]) setReceiptPhotoUri(result.assets[0].uri);
+            if (!result.canceled && result.assets[0]) {
+              if (receiptPhotoUri) await deleteStoredFile(receiptPhotoUri);
+              const relativePath = await persistReceiptPhoto(result.assets[0].uri);
+              setReceiptPhotoUri(relativePath);
+            }
           },
         },
         {
           text: t('addItem.chooseFromLibrary'),
           onPress: async () => {
             const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
-            if (!result.canceled && result.assets[0]) setReceiptPhotoUri(result.assets[0].uri);
+            if (!result.canceled && result.assets[0]) {
+              if (receiptPhotoUri) await deleteStoredFile(receiptPhotoUri);
+              const relativePath = await persistReceiptPhoto(result.assets[0].uri);
+              setReceiptPhotoUri(relativePath);
+            }
           },
         },
         ...(receiptPhotoUri ? [{
           text: t('receipt.removeReceipt'),
           style: 'destructive' as const,
-          onPress: () => setReceiptPhotoUri(null),
+          onPress: async () => {
+            await deleteStoredFile(receiptPhotoUri);
+            setReceiptPhotoUri(null);
+          },
         }] : []),
         { text: t('common.cancel'), style: 'cancel' as const },
       ]
@@ -298,7 +310,7 @@ export const EditEventScreen: React.FC<RootStackScreenProps<'EditEvent'>> = ({
               }}
             >
               {receiptPhotoUri ? (
-                <Image source={{ uri: receiptPhotoUri }} style={{ width: 40, height: 40, borderRadius: 6, marginRight: 12 }} />
+                <Image source={{ uri: resolveStoredUri(receiptPhotoUri) }} style={{ width: 40, height: 40, borderRadius: 6, marginRight: 12 }} />
               ) : (
                 <Ionicons name="receipt-outline" size={22} color={colors.textSecondary} style={{ marginRight: 12 }} />
               )}

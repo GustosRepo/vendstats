@@ -18,6 +18,7 @@ import { hasPremiumAccess } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../utils/currency';
+import { resolveProductImageUri, deleteStoredFile } from '../../../utils/image';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
 
@@ -78,7 +79,8 @@ export const ProductsScreen: React.FC = () => {
               { 
                 text: t('common.delete'), 
                 style: 'destructive',
-                onPress: () => {
+                onPress: async () => {
+                  if (product.imageUri) await deleteStoredFile(product.imageUri);
                   deleteQuickSaleItem(product.id);
                   loadProducts();
                 }
@@ -116,7 +118,7 @@ export const ProductsScreen: React.FC = () => {
       >
         {item.imageUri ? (
           <Image
-            source={{ uri: item.imageUri }}
+            source={{ uri: resolveProductImageUri(item.imageUri) }}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
           />

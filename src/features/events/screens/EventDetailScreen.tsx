@@ -11,6 +11,7 @@ import { getEventById, getSalesByEventId, deleteSale, getQuickSaleItems } from '
 import { calculateEventStats, calculateBreakEven, calculatePrepRecommendations, calculateForecast } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
 import { formatDate } from '../../../utils/date';
+import { resolveStoredUri } from '../../../utils/image';
 import { Event, Sale, EventStats } from '../../../types';
 import { colors } from '../../../theme';
 import { MascotImages } from '../../../../assets';
@@ -504,7 +505,7 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
                 style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 12 }}
               >
                 <Image
-                  source={{ uri: event.receiptPhotoUri }}
+                  source={{ uri: resolveStoredUri(event.receiptPhotoUri) }}
                   style={{ width: 48, height: 48, borderRadius: 8, marginRight: 12 }}
                 />
                 <View style={{ flex: 1 }}>

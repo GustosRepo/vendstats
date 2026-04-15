@@ -12,7 +12,7 @@ import { addQuickSaleItem } from '../../../storage';
 import { canAddItem, getRemainingFreeItems } from '../../../storage';
 import { colors } from '../../../theme';
 import { Ingredient } from '../../../types';
-import { persistProductImage } from '../../../utils/image';
+import { persistProductImage, resolveProductImageUri } from '../../../utils/image';
 
 export const AddProductScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -180,7 +180,7 @@ export const AddProductScreen: React.FC = () => {
           {imageUri ? (
             <>
               <Image
-                source={{ uri: imageUri }}
+                source={{ uri: resolveProductImageUri(imageUri) }}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />

@@ -3,6 +3,7 @@ import { View, Text, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PressableScale } from '../animations';
 import { colors } from '../../theme';
+import { resolveProductImageUri } from '../../utils/image';
 
 interface QuickSaleButtonProps {
   itemName: string;
@@ -40,7 +41,7 @@ export const QuickSaleButton: React.FC<QuickSaleButtonProps> = React.memo(({
       <View style={{ flex: 1, backgroundColor: imageUri ? undefined : colors.copper + '15' }}>
         {imageUri ? (
           <Image
-            source={{ uri: imageUri }}
+            source={{ uri: resolveProductImageUri(imageUri) }}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
           />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Platform, KeyboardAvoidingView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -11,7 +11,7 @@ import { Card, InputField, PrimaryButton } from '../../../components';
 import { getQuickSaleItems, updateQuickSaleItem, deleteQuickSaleItem } from '../../../storage';
 import { QuickSaleItem, Ingredient } from '../../../types';
 import { colors } from '../../../theme';
-import { persistProductImage } from '../../../utils/image';
+import { persistProductImage, resolveProductImageUri, deleteStoredFile } from '../../../utils/image';
 
 type RouteParams = {
   EditProduct: { productId: string };
@@ -25,6 +25,9 @@ export const EditProductScreen: React.FC = () => {
   const headerHeight = useHeaderHeight();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
+  // Tracks the URI that was loaded from storage so we can delete the old
+  // file when the user replaces or removes the photo.
+  const originalImageUriRef = useRef<string | null>(null);
   const [itemName, setItemName] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [sellPrice, setSellPrice] = useState('');
@@ -45,6 +48,7 @@ export const EditProductScreen: React.FC = () => {
       setCostPrice(product.defaultCost.toString());
       setSellPrice(product.defaultPrice.toString());
       setImageUri(product.imageUri || null);
+      originalImageUriRef.current = product.imageUri || null;
       setStockCount(product.stockCount !== undefined ? product.stockCount.toString() : '');
       if (product.ingredients && product.ingredients.length > 0) {
         setIngredients(product.ingredients.map(ing => ({
@@ -145,6 +149,14 @@ export const EditProductScreen: React.FC = () => {
       // Persist image to documents directory so it survives app updates
       const persistedUri = imageUri ? await persistProductImage(imageUri) : undefined;
 
+      // Delete the old image file if the photo was changed or removed
+      const originalUri = originalImageUriRef.current;
+      if (originalUri && originalUri !== persistedUri) {
+        await deleteStoredFile(originalUri);
+      }
+      // Update ref so re-saves don't re-delete
+      originalImageUriRef.current = persistedUri ?? null;
+
       const parsedIngredients: Ingredient[] = ingredients
         .filter(ing => ing.name.trim() && parseFloat(ing.cost) > 0)
         .map(ing => ({ name: ing.name.trim(), cost: parseFloat(ing.cost) || 0 }));
@@ -175,7 +187,8 @@ export const EditProductScreen: React.FC = () => {
         {
           text: t('common.delete'),
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            if (imageUri) await deleteStoredFile(imageUri);
             deleteQuickSaleItem(productId);
             navigation.goBack();
           },
@@ -222,7 +235,7 @@ export const EditProductScreen: React.FC = () => {
           {imageUri ? (
             <>
               <Image
-                source={{ uri: imageUri }}
+                source={{ uri: resolveProductImageUri(imageUri) }}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />

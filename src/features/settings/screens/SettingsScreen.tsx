@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
+import { persistQrImage, deleteStoredFile } from '../../../utils/image';
 import { 
   getSubscriptionState, 
   hasPremiumAccess, 
@@ -344,13 +345,11 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
             quality: 0.9,
           });
           if (!result.canceled && result.assets[0]) {
-            const dir = `${FileSystem.documentDirectory}qr/`;
-            const dirInfo = await FileSystem.getInfoAsync(dir);
-            if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
-            const dest = `${dir}payment_qr_${Date.now()}.jpg`;
-            await FileSystem.copyAsync({ from: result.assets[0].uri, to: dest });
-            setQrCodeUri(dest);
-            setQrCodeUriState(dest);
+            // Delete old QR file before replacing
+            if (qrCodeUri) await deleteStoredFile(qrCodeUri);
+            const relativePath = await persistQrImage(result.assets[0].uri);
+            setQrCodeUri(relativePath);
+            setQrCodeUriState(relativePath);
           }
         },
       },
@@ -365,9 +364,7 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
         text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
-          if (qrCodeUri) {
-            try { await FileSystem.deleteAsync(qrCodeUri, { idempotent: true }); } catch {}
-          }
+          await deleteStoredFile(qrCodeUri);
           setQrCodeUri(undefined);
           setQrCodeUriState(undefined);
         },

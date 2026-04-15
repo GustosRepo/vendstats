@@ -14,6 +14,7 @@ import { getDataVersion } from '../../../storage/mmkv';
 import { getReminderEnabled } from '../../../storage/settings';
 import { calculateGlobalStats } from '../../../utils/calculations';
 import { formatCurrency } from '../../../utils/currency';
+import { resolveProductImageUri } from '../../../utils/image';
 import { Event, GlobalStats, QuickSaleItem } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
 import { MascotImages } from '../../../../assets';
@@ -380,7 +381,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
                     >
                       {item.imageUri ? (
                         <Image 
-                          source={{ uri: item.imageUri }} 
+                          source={{ uri: resolveProductImageUri(item.imageUri) }} 
                           style={{ width: 40, height: 40, borderRadius: 8, marginRight: 12 }} 
                         />
                       ) : (

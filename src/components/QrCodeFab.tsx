@@ -12,10 +12,10 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { getQrCodeUri, setQrCodeUri } from '../storage/settings';
+import { persistQrImage, resolveStoredUri, deleteStoredFile } from '../utils/image';
 import { colors, shadows, radius } from '../theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -42,16 +42,12 @@ export const QrCodeFab: React.FC = () => {
     }
   };
 
-  const persistImage = async (pickerUri: string): Promise<string> => {
-    const dir = `${FileSystem.documentDirectory}qr/`;
-    const dirInfo = await FileSystem.getInfoAsync(dir);
-    if (!dirInfo.exists) {
-      await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
-    }
-    const filename = `payment_qr_${Date.now()}.jpg`;
-    const destUri = `${dir}${filename}`;
-    await FileSystem.copyAsync({ from: pickerUri, to: destUri });
-    return destUri;
+  const saveQrImage = async (pickerUri: string) => {
+    // Delete old QR file before replacing
+    if (qrUri) await deleteStoredFile(qrUri);
+    const relativePath = await persistQrImage(pickerUri);
+    setQrCodeUri(relativePath);
+    setQrUri(relativePath);
   };
 
   const pickFromCamera = async () => {
@@ -65,9 +61,7 @@ export const QrCodeFab: React.FC = () => {
       quality: 0.9,
     });
     if (!result.canceled && result.assets[0]) {
-      const savedUri = await persistImage(result.assets[0].uri);
-      setQrCodeUri(savedUri);
-      setQrUri(savedUri);
+      await saveQrImage(result.assets[0].uri);
       setShowSetupModal(false);
       setShowModal(true);
     }
@@ -79,9 +73,7 @@ export const QrCodeFab: React.FC = () => {
       quality: 0.9,
     });
     if (!result.canceled && result.assets[0]) {
-      const savedUri = await persistImage(result.assets[0].uri);
-      setQrCodeUri(savedUri);
-      setQrUri(savedUri);
+      await saveQrImage(result.assets[0].uri);
       setShowSetupModal(false);
       setShowModal(true);
     }
@@ -102,10 +94,7 @@ export const QrCodeFab: React.FC = () => {
         text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
-          // Delete file
-          if (qrUri) {
-            try { await FileSystem.deleteAsync(qrUri, { idempotent: true }); } catch {}
-          }
+          await deleteStoredFile(qrUri);
           setQrCodeUri(undefined);
           setQrUri(undefined);
           setShowModal(false);
@@ -159,7 +148,7 @@ export const QrCodeFab: React.FC = () => {
           {qrUri && (
             <View style={{ backgroundColor: '#fff', borderRadius: radius.xl, padding: 16, ...shadows.lg }}>
               <Image
-                source={{ uri: qrUri }}
+                source={{ uri: resolveStoredUri(qrUri) }}
                 style={{ width: screenWidth * 0.72, height: screenWidth * 0.72 }}
                 resizeMode="contain"
               />
