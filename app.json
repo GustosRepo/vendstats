@@ -1,4 +1,7 @@
 {
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-8863066373093222~4764574849"
+  },
   "expo": {
     "name": "VendStats",
     "slug": "vendstats",
@@ -27,11 +30,19 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#E8F1F8"
       },
-      "package": "com.vendstats.app"
+      "package": "com.codewerx.vendstats",
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-font",
-      "expo-localization"
+      "expo-localization",
+      [
+        "./plugins/withAdmob",
+        {
+          "androidAppId": "ca-app-pub-8863066373093222~4764574849"
+        }
+      ]
     ],
     "extra": {
       "eas": {

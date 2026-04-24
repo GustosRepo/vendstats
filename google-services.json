@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "293394025476",
+    "project_id": "vendstats",
+    "storage_bucket": "vendstats.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:293394025476:android:a487228bbb4b7e2e5fb951",
+        "android_client_info": {
+          "package_name": "com.codewerx.vendstats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe1BK12jKCNEyQxjG3je2bn4I-wlc6c38"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

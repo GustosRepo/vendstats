@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
-import { EmptyState } from '../../../components';
+import { EmptyState, AdBanner } from '../../../components';
 import { PressableScale, AnimatedListItem, FadeIn } from '../../../components/animations';
 import { getAllEvents, getAllSales, getQuickSaleItems, getLowStockThreshold } from '../../../storage';
 import { hasPremiumAccess } from '../../../storage';
@@ -499,6 +499,7 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
           </View>
         )}
       </ScrollView>
+      <AdBanner />
     </SafeAreaView>
   );
 };

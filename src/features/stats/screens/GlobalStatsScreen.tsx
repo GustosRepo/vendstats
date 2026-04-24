@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, RefreshControl, Dimensions, Image, TouchableOpacity, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdBanner } from '../../../components';
 import { useFocusEffect } from '@react-navigation/native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
@@ -806,6 +807,7 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
           )}
         </View>
       </ScrollView>
+      <AdBanner />
     </SafeAreaView>
   );
 };
