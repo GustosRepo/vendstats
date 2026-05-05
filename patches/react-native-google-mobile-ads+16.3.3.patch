@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsCommon.java b/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsCommon.java
-index 1538ae5..94030b2 100644
+index 825a76f..9cc08e4 100644
 --- a/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsCommon.java
 +++ b/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsCommon.java
 @@ -69,7 +69,8 @@ public class ReactNativeGoogleMobileAdsCommon {
@@ -12,19 +12,6 @@ index 1538ae5..94030b2 100644
        }
        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
            reactViewGroup.getContext(), adWidth);
-diff --git a/node_modules/react-native-google-mobile-ads/package.json b/node_modules/react-native-google-mobile-ads/package.json
-index 1c92dd6..0ace87c 100644
---- a/node_modules/react-native-google-mobile-ads/package.json
-+++ b/node_modules/react-native-google-mobile-ads/package.json
-@@ -161,7 +161,7 @@
-       "targetSdk": 34,
-       "compileSdk": 34,
-       "buildTools": "34.0.0",
--      "googleMobileAds": "25.0.0",
-+      "googleMobileAds": "24.6.0",
-       "googleUmp": "4.0.0"
-     }
-   },
 diff --git a/node_modules/react-native-google-mobile-ads/src/specs/modules/NativeAppModule.ts b/node_modules/react-native-google-mobile-ads/src/specs/modules/NativeAppModule.ts
 index f315f05..98c2756 100644
 --- a/node_modules/react-native-google-mobile-ads/src/specs/modules/NativeAppModule.ts

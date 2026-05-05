@@ -1,11 +1,13 @@
-const { AndroidConfig, withAndroidManifest } = require('@expo/config-plugins');
+const { AndroidConfig, withAndroidManifest, withProjectBuildGradle } = require('@expo/config-plugins');
+
+const GOOGLE_MOBILE_ADS_FORCE_MARKER = '// @vendstats-force-google-mobile-ads-version';
 
 /**
  * Custom config plugin to inject AdMob App ID into AndroidManifest.xml.
  * Replaces the broken built-in react-native-google-mobile-ads plugin for Expo 50.
  */
-const withAdmob = (config, { androidAppId }) => {
-  return withAndroidManifest(config, (modConfig) => {
+const withAdmob = (config, { androidAppId, googleMobileAdsVersion = '24.6.0' }) => {
+  config = withAndroidManifest(config, (modConfig) => {
     const manifest = modConfig.modResults;
     AndroidConfig.Manifest.ensureToolsAvailable(manifest);
     const application = manifest.manifest.application[0];
@@ -27,6 +29,22 @@ const withAdmob = (config, { androidAppId }) => {
         'tools:replace': 'android:value',
       },
     });
+
+    return modConfig;
+  });
+
+  return withProjectBuildGradle(config, (modConfig) => {
+    if (!modConfig.modResults.contents.includes(GOOGLE_MOBILE_ADS_FORCE_MARKER)) {
+      modConfig.modResults.contents += `
+
+${GOOGLE_MOBILE_ADS_FORCE_MARKER}
+subprojects { subproject ->
+    subproject.configurations.configureEach {
+        resolutionStrategy.force "com.google.android.gms:play-services-ads:${googleMobileAdsVersion}"
+    }
+}
+`;
+    }
 
     return modConfig;
   });
