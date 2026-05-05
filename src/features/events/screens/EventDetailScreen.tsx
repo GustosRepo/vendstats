@@ -616,7 +616,7 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
       <View style={{ position: "absolute", bottom: 32, right: 20, left: 20 }}>
         <PrimaryButton
           title={t('eventDetail.addSaleFloating')}
-          onPress={handleAddSale}
+          onPress={handleQuickSale}
           size="lg"
         />
       </View>
