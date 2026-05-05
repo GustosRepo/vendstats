@@ -22,22 +22,27 @@ export const REVENUECAT_CONFIG = {
   },
 } as const;
 
+const isValidRevenueCatKey = (key: string, prefixes: string[]): boolean =>
+  key.length > 0 && !key.includes('YOUR_') && prefixes.some((prefix) => key.startsWith(prefix));
+
 /**
- * Check if RevenueCat is properly configured
+ * Check if RevenueCat is properly configured for a specific platform.
  */
-export const isRevenueCatConfigured = (): boolean => {
-  const appleKey = REVENUECAT_CONFIG.apiKeys.apple;
-  const isValidKey = appleKey.length > 0 && 
-    !appleKey.includes('YOUR_') && 
-    (appleKey.startsWith('appl_') || appleKey.startsWith('sk_'));
-  
+export const isRevenueCatConfigured = (platform: 'ios' | 'android' = 'ios'): boolean => {
+  const key = platform === 'ios'
+    ? REVENUECAT_CONFIG.apiKeys.apple
+    : REVENUECAT_CONFIG.apiKeys.google;
+  const validPrefixes = platform === 'ios' ? ['appl_', 'sk_'] : ['goog_'];
+  const isValidKey = isValidRevenueCatKey(key, validPrefixes);
+
   console.log('RevenueCat Config Check:', {
-    hasKey: !!appleKey,
-    keyLength: appleKey?.length,
-    keyPrefix: appleKey?.substring(0, 5),
+    platform,
+    hasKey: !!key,
+    keyLength: key?.length,
+    keyPrefix: key?.substring(0, 5),
     isValid: isValidKey
   });
-  
+
   return isValidKey;
 };
 
@@ -48,9 +53,11 @@ export const getConfigStatus = () => {
   return {
     hasAppleKey: !!REVENUECAT_CONFIG.apiKeys.apple && REVENUECAT_CONFIG.apiKeys.apple.length > 0,
     hasGoogleKey: !!REVENUECAT_CONFIG.apiKeys.google && REVENUECAT_CONFIG.apiKeys.google.length > 0,
-    isConfigured: isRevenueCatConfigured(),
+    isAppleConfigured: isRevenueCatConfigured('ios'),
+    isGoogleConfigured: isRevenueCatConfigured('android'),
     entitlementID: REVENUECAT_CONFIG.entitlementID,
     products: REVENUECAT_CONFIG.products,
     appleKeyPrefix: REVENUECAT_CONFIG.apiKeys.apple?.substring(0, 10) + '...',
+    googleKeyPrefix: REVENUECAT_CONFIG.apiKeys.google?.substring(0, 10) + '...',
   };
 };

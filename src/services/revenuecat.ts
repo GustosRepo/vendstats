@@ -11,6 +11,14 @@ import { activateSubscription, expireSubscription, hasPremiumAccess } from '../s
 // Check if we're in Expo Go (can't use native modules)
 const isExpoGo = Constants.appOwnership === 'expo';
 
+const revenueCatPlatform = (): 'ios' | 'android' =>
+  Platform.OS === 'ios' ? 'ios' : 'android';
+
+const revenueCatApiKeyName = (platform: 'ios' | 'android'): string =>
+  platform === 'ios'
+    ? 'EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY'
+    : 'EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY';
+
 // Type definitions for RevenueCat (avoid importing types from native module)
 export interface MockPackage {
   identifier: string;
@@ -43,7 +51,9 @@ export const initializeRevenueCat = async (): Promise<void> => {
     return;
   }
 
-  if (!isRevenueCatConfigured()) {
+  const platform = revenueCatPlatform();
+
+  if (!isRevenueCatConfigured(platform)) {
     console.warn('⚠️ RevenueCat not configured - add API key to .env file. Using demo mode.');
     console.log('Config status:', getConfigStatus());
     return;
@@ -55,7 +65,7 @@ export const initializeRevenueCat = async (): Promise<void> => {
     
     Purchases.setLogLevel(LOG_LEVEL.DEBUG);
     
-    const apiKey = Platform.OS === 'ios' 
+    const apiKey = platform === 'ios'
       ? REVENUECAT_CONFIG.apiKeys.apple 
       : REVENUECAT_CONFIG.apiKeys.google;
     
@@ -96,7 +106,7 @@ export const getOfferings = async (): Promise<MockOffering | null> => {
     };
   }
 
-  if (!isRevenueCatConfigured()) {
+  if (!isRevenueCatConfigured(revenueCatPlatform())) {
     console.warn('RevenueCat not configured - no offerings available');
     return null;
   }
@@ -133,13 +143,15 @@ export const purchasePackage = async (
     };
   }
 
-  if (!isRevenueCatConfigured()) {
+  const platform = revenueCatPlatform();
+
+  if (!isRevenueCatConfigured(platform)) {
     console.warn('RevenueCat not configured - cannot process purchase');
     return {
       success: false,
       error: {
         code: 'NOT_CONFIGURED',
-        message: 'RevenueCat is not configured. Add EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY and rebuild the app.',
+        message: `RevenueCat is not configured. Add ${revenueCatApiKeyName(platform)} and rebuild the app.`,
         details: getConfigStatus(),
       },
     };
@@ -189,7 +201,7 @@ export const restorePurchases = async (): Promise<{
     return { success: true, hasActiveSubscription: false };
   }
 
-  if (!isRevenueCatConfigured()) {
+  if (!isRevenueCatConfigured(revenueCatPlatform())) {
     console.warn('RevenueCat not configured - cannot restore purchases');
     return { success: false, hasActiveSubscription: false };
   }
@@ -222,7 +234,7 @@ export const checkSubscriptionStatus = async (): Promise<boolean> => {
     return hasPremiumAccess();
   }
 
-  if (!isRevenueCatConfigured()) {
+  if (!isRevenueCatConfigured(revenueCatPlatform())) {
     return false;
   }
 
@@ -252,6 +264,10 @@ export const getCustomerInfo = async (): Promise<any | null> => {
     return null;
   }
 
+  if (!isRevenueCatConfigured(revenueCatPlatform())) {
+    return null;
+  }
+
   try {
     const { default: Purchases } = await import('react-native-purchases');
     return await Purchases.getCustomerInfo();
@@ -267,6 +283,11 @@ export const getCustomerInfo = async (): Promise<any | null> => {
 export const addCustomerInfoUpdateListener = (): void => {
   if (isExpoGo) {
     console.log('🚧 Skipping RevenueCat listener in Expo Go');
+    return;
+  }
+
+  if (!isRevenueCatConfigured(revenueCatPlatform())) {
+    console.log('Skipping RevenueCat listener because RevenueCat is not configured');
     return;
   }
 
