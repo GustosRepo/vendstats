@@ -164,6 +164,7 @@ export const addQuickSaleItem = (item: Omit<QuickSaleItem, 'id'>): QuickSaleItem
 
   items.push(newItem);
   mmkvStorage.setJSON(STORAGE_KEYS.QUICK_ITEMS, items);
+  bumpDataVersion();
 
   return newItem;
 };
@@ -177,6 +178,7 @@ export const deleteQuickSaleItem = (id: string): boolean => {
   }
 
   mmkvStorage.setJSON(STORAGE_KEYS.QUICK_ITEMS, filteredItems);
+  bumpDataVersion();
   return true;
 };
 
@@ -190,6 +192,7 @@ export const updateQuickSaleItem = (id: string, updates: Partial<Omit<QuickSaleI
 
   items[index] = { ...items[index], ...updates };
   mmkvStorage.setJSON(STORAGE_KEYS.QUICK_ITEMS, items);
+  bumpDataVersion();
 
   return items[index];
 };
