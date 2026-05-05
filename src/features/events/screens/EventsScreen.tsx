@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenProps } from '../../../navigation/types';
-import { EmptyState } from '../../../components';
+import { AdBanner, EmptyState } from '../../../components';
 import { PressableScale, AnimatedListItem } from '../../../components/animations';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { MascotImages } from '../../../../assets';
@@ -187,6 +187,7 @@ export const EventsScreen: React.FC<TabScreenProps<'Events'>> = ({ navigation })
           }
         />
       )}
+      <AdBanner />
     </SafeAreaView>
   );
 };

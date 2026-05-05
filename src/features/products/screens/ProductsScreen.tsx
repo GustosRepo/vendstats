@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { AdBanner } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { PressableScale, AnimatedListItem } from '../../../components/animations';
 import { getQuickSaleItems, deleteQuickSaleItem, getLowStockThreshold } from '../../../storage';
@@ -326,6 +327,7 @@ export const ProductsScreen: React.FC = () => {
           }
         />
       )}
+      <AdBanner />
     </SafeAreaView>
   );
 };
