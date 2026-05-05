@@ -32,7 +32,10 @@
         "backgroundColor": "#E8F1F8"
       },
       "package": "com.codewerx.vendstats",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_VIDEO"
+      ]
     },
     "plugins": [
       "expo-font",

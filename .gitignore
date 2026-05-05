@@ -37,9 +37,6 @@ yarn-error.*
 # Testing
 coverage/
 
-# Generated native build patches; these include local machine paths/build output.
-patches/react-native-screens+3.29.0.patch
-
 # Editor
 .vscode/
 .idea/
