@@ -1,4 +1,4 @@
-const { withAndroidManifest } = require('@expo/config-plugins');
+const { AndroidConfig, withAndroidManifest } = require('@expo/config-plugins');
 
 /**
  * Custom config plugin to inject AdMob App ID into AndroidManifest.xml.
@@ -7,6 +7,7 @@ const { withAndroidManifest } = require('@expo/config-plugins');
 const withAdmob = (config, { androidAppId }) => {
   return withAndroidManifest(config, (modConfig) => {
     const manifest = modConfig.modResults;
+    AndroidConfig.Manifest.ensureToolsAvailable(manifest);
     const application = manifest.manifest.application[0];
 
     if (!application['meta-data']) {
@@ -23,6 +24,7 @@ const withAdmob = (config, { androidAppId }) => {
       $: {
         'android:name': 'com.google.android.gms.ads.APPLICATION_ID',
         'android:value': androidAppId,
+        'tools:replace': 'android:value',
       },
     });
 

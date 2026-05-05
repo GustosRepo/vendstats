@@ -1,7 +1,4 @@
 {
-  "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-8863066373093222~4764574849"
-  },
   "expo": {
     "name": "VendStats",
     "slug": "vendstats",
@@ -55,7 +52,8 @@
             "buildToolsVersion": "35.0.0"
           }
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
