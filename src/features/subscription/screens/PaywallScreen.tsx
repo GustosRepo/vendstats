@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { RootStackScreenProps } from '../../../navigation/types';
@@ -110,6 +110,8 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
   const selectedPackage = selectedPlan === 'yearly' ? packages.yearly : packages.monthly;
   const offeringsUnavailable = !loadingOfferings && !selectedPackage;
   const canSubscribe = !!selectedPackage && !loadingOfferings;
+  const storeName = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
+  const accountLabel = Platform.OS === 'ios' ? 'Apple ID account' : 'Google Play account';
 
   const handleSubscribe = async () => {
     try {
@@ -285,7 +287,10 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
                   )}
                 </View>
                 <Text style={{ fontSize: 14, color: colors.textTertiary }}>
-                  {plans.yearly.price} / {plans.yearly.period}
+                  {t('paywall.billedEveryPeriod', { price: plans.yearly.price, period: plans.yearly.period })}
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
+                  {t('paywall.renewsEveryPeriod', { period: plans.yearly.period })}
                 </Text>
               </View>
               <View className={`
@@ -314,7 +319,10 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
                   {t('paywall.monthly')}
                 </Text>
                 <Text style={{ fontSize: 14, color: colors.textTertiary }}>
-                  {plans.monthly.price} / {plans.monthly.period}
+                  {t('paywall.billedEveryPeriod', { price: plans.monthly.price, period: plans.monthly.period })}
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
+                  {t('paywall.renewsEveryPeriod', { period: plans.monthly.period })}
                 </Text>
               </View>
               <View className={`
@@ -379,9 +387,32 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
             </TouchableOpacity>
           </View>
           
-          <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: "center" }}>
-            {t('paywall.legalDisclaimer')}
-          </Text>
+          <View
+            style={{
+              width: '100%',
+              backgroundColor: colors.surfaceSecondary,
+              borderRadius: 12,
+              padding: 14,
+              borderWidth: 1,
+              borderColor: colors.divider,
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textPrimary, textAlign: 'center', marginBottom: 8 }}>
+              {t('paywall.subscriptionTermsTitle')}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center', marginBottom: 6 }}>
+              {t('paywall.subscriptionOptional')}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center', marginBottom: 6 }}>
+              {t('paywall.selectedPlanDisclaimer', {
+                price: selectedPlan === 'yearly' ? plans.yearly.price : plans.monthly.price,
+                period: selectedPlan === 'yearly' ? t('paywall.year') : t('paywall.month'),
+              })}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center' }}>
+              {t('paywall.legalDisclaimer', { account: accountLabel, store: storeName })}
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
