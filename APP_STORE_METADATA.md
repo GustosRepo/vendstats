@@ -126,9 +126,12 @@ VendStats stores all data locally on the device using MMKV/AsyncStorage. No user
 
 **Third-Party SDKs:**
 - RevenueCat — processes subscription purchases (Apple handles payment data)
-- No analytics, advertising, or tracking SDKs
+- Google Mobile Ads SDK — serves AdMob ads
+- Firebase Analytics — supports Google Ads app campaign attribution and conversion measurement
 
 **Data categories to mark as "Not Collected":**
+Revisit this section before submission. Firebase Analytics and AdMob may change the App Store privacy answers and ATT requirements depending on the data flows and campaign setup you enable.
+
 - Contact Info ✗
 - Health & Fitness ✗
 - Financial Info ✗

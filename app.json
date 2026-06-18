@@ -18,6 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vendstats.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "16",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -50,10 +51,22 @@
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "buildToolsVersion": "35.0.0"
+          },
+          "ios": {
+            "useFrameworks": "static"
           }
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "@react-native-firebase/app",
+      [
+        "@react-native-firebase/analytics",
+        {
+          "ios": {
+            "googleAppMeasurementOnDeviceConversion": true
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {

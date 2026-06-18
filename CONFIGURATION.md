@@ -108,3 +108,42 @@ Expected output when configured:
   "entitlementID": "pro"
 }
 ```
+
+## Firebase Analytics Setup
+
+### Purpose
+Firebase Analytics is used here for Google Ads app campaign install and conversion measurement. It is separate from AdMob ad serving.
+
+### Current Repo State
+- `@react-native-firebase/app` and `@react-native-firebase/analytics` are installed.
+- Android is configured with `google-services.json`.
+- App startup initializes Firebase Analytics in native builds.
+- iOS still needs a `GoogleService-Info.plist` file from Firebase Console.
+
+### iOS Setup
+1. In Firebase Console, add an iOS app with bundle ID `com.vendstats.app`.
+2. Download `GoogleService-Info.plist`.
+3. Place it at the project root.
+4. Add this to the `ios` section of `app.json`:
+    ```json
+    "googleServicesFile": "./GoogleService-Info.plist"
+    ```
+
+### Rebuild Required
+After changing Firebase native config, rebuild the app:
+
+```bash
+npx expo prebuild --clean
+npx expo run:ios
+```
+
+For Android:
+
+```bash
+npx expo run:android
+```
+
+### Google Ads Linking
+1. In Firebase Console, open Project Settings > Integrations and link Google Ads.
+2. In Google Ads, import Firebase app conversions such as `first_open` and any custom events you want to optimize for.
+3. Use a new build after Firebase is installed; old development builds will not contain the native Firebase modules.

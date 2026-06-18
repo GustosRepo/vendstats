@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation';
 import { initializeStorage } from './src/storage/mmkv';
+import { initializeAnalytics } from './src/services/analytics';
 import { initializeRevenueCat, addCustomerInfoUpdateListener } from './src/services/revenuecat';
 import { restoreLanguage } from './src/i18n';
 import { migrateProductImages } from './src/storage/migrations';
@@ -23,6 +24,9 @@ export default function App() {
       
       // Clean up broken product image URIs from prior updates
       const imagesWereCleaned = await migrateProductImages();
+
+      // Enable Firebase Analytics for app campaign attribution in native builds
+      await initializeAnalytics();
       
       // Initialize RevenueCat
       await initializeRevenueCat();

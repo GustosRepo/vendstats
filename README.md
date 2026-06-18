@@ -10,6 +10,7 @@ A mobile app for pop-up vendors to track event revenue, expenses, and profit.
 - MMKV for local persistent storage
 - React Navigation (stack + tabs)
 - RevenueCat for subscription management
+- Firebase Analytics for Google Ads app campaign attribution
 
 ## Getting Started
 
@@ -125,6 +126,14 @@ src/
 2. Create a new project and configure your products
 3. Update `app.json` with your API key
 4. Update `App.tsx` with your public SDK key
+
+### Firebase Analytics Setup
+
+1. Android is already wired to `google-services.json` for Firebase.
+2. Download `GoogleService-Info.plist` for the iOS app with bundle ID `com.vendstats.app` from Firebase Console.
+3. Place the file at the project root and add `"googleServicesFile": "./GoogleService-Info.plist"` under the iOS section of `app.json`.
+4. Rebuild the native app after config changes with `npx expo prebuild --clean` and then `npx expo run:ios` or `npx expo run:android`.
+5. Link the Firebase project to Google Ads and import Firebase conversions in Google Ads.
 
 ## License
 
