@@ -119,7 +119,7 @@ export const formatFreeReportText = (report: FreeReport): string => {
     `📦 Expenses: ${report.expenses}`,
     `${report.isProfitable ? '📈' : '📉'} Profit: ${report.profit}`,
     '',
-    '— Tracked with VendStats 📊',
+    '— Tracked with VendStats',
   ].join('\n');
 };
 

@@ -9,6 +9,7 @@ import { TexturePattern } from '../../../components/TexturePattern';
 import { getEventById, updateEvent, getQuickSaleItems } from '../../../storage';
 import { QuickSaleItem } from '../../../types';
 import { colors } from '../../../theme';
+import { resolveProductImageUri } from '../../../utils/image';
 
 export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventProducts'>> = ({
   navigation,
@@ -140,7 +141,7 @@ export const EditEventProductsScreen: React.FC<RootStackScreenProps<'EditEventPr
                   >
                     {product.imageUri ? (
                       <Image
-                        source={{ uri: product.imageUri }}
+                        source={{ uri: resolveProductImageUri(product.imageUri) }}
                         style={{ width: '100%', height: '100%' }}
                         resizeMode="cover"
                       />

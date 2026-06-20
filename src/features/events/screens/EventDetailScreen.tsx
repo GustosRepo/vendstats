@@ -173,6 +173,10 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
     } catch {}
   };
 
+  const handleShareMenu = () => {
+    navigation.navigate('MenuDisplay', { eventId });
+  };
+
   const handleEditSale = (saleId: string) => {
     navigation.navigate('EditSale', { eventId, saleId });
   };
@@ -254,6 +258,9 @@ export const EventDetailScreen: React.FC<RootStackScreenProps<'EventDetail'>> = 
               ) : null}
             </View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity onPress={handleShareMenu}>
+                <Ionicons name="storefront-outline" size={20} color={colors.primary} />
+              </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('EventReport', { eventId })}>
                 <Ionicons name="document-text-outline" size={20} color={colors.primary} />
               </TouchableOpacity>

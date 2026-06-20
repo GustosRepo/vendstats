@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const PRODUCT_IMAGES_RELATIVE_DIR = 'product-images/';
 const QR_RELATIVE_DIR = 'qr/';

@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Share, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -22,6 +22,7 @@ import {
 } from '../../../utils/report';
 import { Event, Sale, EventStats } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
+import { MascotImages } from '../../../../assets';
 
 export const EventReportScreen: React.FC<RootStackScreenProps<'EventReport'>> = ({
   navigation,
@@ -30,7 +31,7 @@ export const EventReportScreen: React.FC<RootStackScreenProps<'EventReport'>> = 
   const { eventId } = route.params;
   const { t } = useTranslation();
   const isPremium = hasPremiumAccess();
-  const viewShotRef = useRef<ViewShot>(null);
+  const viewShotRef = useRef<React.ElementRef<typeof ViewShot>>(null);
 
   const [event, setEvent] = useState<Event | null>(null);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -343,13 +344,17 @@ export const EventReportScreen: React.FC<RootStackScreenProps<'EventReport'>> = 
               alignItems: 'center',
               justifyContent: 'center',
             }}>
+              <Image
+                source={MascotImages.smile}
+                style={{ width: 22, height: 22, marginRight: 6 }}
+                resizeMode="contain"
+              />
               <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: '500' }}>
                 Tracked with{' '}
               </Text>
               <Text style={{ fontSize: 11, color: colors.primary, fontWeight: '700' }}>
                 VendStats
               </Text>
-              <Text style={{ fontSize: 11, marginLeft: 4 }}>📊</Text>
             </View>
           </View>
         </ViewShot>

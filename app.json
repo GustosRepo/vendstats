@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#E8F1F8"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -37,6 +32,14 @@
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#E8F1F8"
+        }
+      ],
       "expo-localization",
       [
         "./plugins/withAdmob",

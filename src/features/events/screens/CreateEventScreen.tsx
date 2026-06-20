@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../theme';
 import * as ImagePicker from 'expo-image-picker';
-import { persistReceiptPhoto, resolveStoredUri } from '../../../utils/image';
+import { persistReceiptPhoto, resolveProductImageUri, resolveStoredUri } from '../../../utils/image';
 
 export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -128,7 +128,7 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
           text: t('addItem.chooseFromLibrary'),
           onPress: async () => {
             const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              mediaTypes: ['images'],
               quality: 0.8,
             });
             if (!result.canceled && result.assets[0]) {
@@ -466,7 +466,7 @@ export const CreateEventScreen: React.FC<RootStackScreenProps<'CreateEvent'>> = 
                       >
                         {product.imageUri ? (
                           <Image
-                            source={{ uri: product.imageUri }}
+                            source={{ uri: resolveProductImageUri(product.imageUri) }}
                             style={{ width: '100%', height: '100%' }}
                             resizeMode="cover"
                           />

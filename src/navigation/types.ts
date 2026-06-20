@@ -29,7 +29,7 @@ export type RootStackParamList = {
   BestSellers: undefined;
   EventComparison: undefined;
   EventRanking: undefined;
-  MenuDisplay: undefined;
+  MenuDisplay: { eventId?: string } | undefined;
   EventReport: { eventId: string };
 };
 

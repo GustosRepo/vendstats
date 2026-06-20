@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useTranslation } from 'react-i18next';
 import { TabScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -341,7 +341,7 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
         text: t('qrCode.chooseFromLibrary'),
         onPress: async () => {
           const result = await (await import('expo-image-picker')).launchImageLibraryAsync({
-            mediaTypes: (await import('expo-image-picker')).MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             quality: 0.9,
           });
           if (!result.canceled && result.assets[0]) {

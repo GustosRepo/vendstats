@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Linking, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { Card, PrimaryButton } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -15,6 +16,7 @@ const PRIVACY_POLICY_URL = 'https://www.code-werx.com/vendstats/privacy';
 
 export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navigation }) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [loadingOfferings, setLoadingOfferings] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
@@ -198,30 +200,46 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
     navigation.navigate('PrivacyPolicy');
   };
 
-  const features = [
-    { icon: '�', title: t('paywall.unlimitedItems'), description: t('paywall.unlimitedItemsDesc') },
-    { icon: '📊', title: t('paywall.globalStats'), description: t('paywall.globalStatsDesc') },
-    { icon: '📄', title: t('paywall.csvExport'), description: t('paywall.csvExportDesc') },
-    { icon: '🔔', title: t('paywall.lowStockAlerts'), description: t('paywall.lowStockAlertsDesc') },
-    { icon: '📈', title: t('paywall.chartsInsights'), description: t('paywall.chartsInsightsDesc') },
+  const features: {
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+    title: string;
+    description: string;
+  }[] = [
+    { icon: 'cube-outline', title: t('paywall.unlimitedItems'), description: t('paywall.unlimitedItemsDesc') },
+    { icon: 'bar-chart-outline', title: t('paywall.globalStats'), description: t('paywall.globalStatsDesc') },
+    { icon: 'document-text-outline', title: t('paywall.csvExport'), description: t('paywall.csvExportDesc') },
+    { icon: 'notifications-outline', title: t('paywall.lowStockAlerts'), description: t('paywall.lowStockAlertsDesc') },
+    { icon: 'trending-up-outline', title: t('paywall.chartsInsights'), description: t('paywall.chartsInsightsDesc') },
   ];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
       <TexturePattern />
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={{
+          position: 'absolute',
+          top: Math.max(insets.top + 8, 20),
+          right: 16,
+          zIndex: 20,
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.surface + 'E6',
+        }}
+        hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+        accessibilityRole="button"
+        accessibilityLabel="Close"
+      >
+        <Text style={{ fontSize: 28, lineHeight: 32, color: colors.textMuted }}>×</Text>
+      </TouchableOpacity>
       <ScrollView 
         style={{ flex: 1 }} 
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 12 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Close Button */}
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          className="absolute top-4 right-4 z-10 w-8 h-8 items-center justify-center"
-        >
-          <Text style={{ fontSize: 24, color: colors.textMuted }}>×</Text>
-        </TouchableOpacity>
-
         {/* Header */}
         <View className="items-center pt-12 pb-8 px-6">
           <Image 
@@ -244,7 +262,7 @@ export const PaywallScreen: React.FC<RootStackScreenProps<'Paywall'>> = ({ navig
               key={index}
               style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}
             >
-              <Text className="text-2xl mr-4">{feature.icon}</Text>
+              <Ionicons name={feature.icon} size={24} color={colors.primary} style={{ marginRight: 16 }} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
                   {feature.title}

@@ -6,27 +6,42 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { RootStackScreenProps } from '../../../navigation/types';
 import { TexturePattern } from '../../../components/TexturePattern';
 import { Card, PrimaryButton } from '../../../components';
-import { getQuickSaleItems } from '../../../storage';
+import { getEventById, getQuickSaleItems } from '../../../storage';
 import { formatCurrency } from '../../../utils/currency';
+import { resolveProductImageUri } from '../../../utils/image';
 import { QuickSaleItem } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
+import { MascotImages } from '../../../../assets';
 
 export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = ({
   navigation,
+  route,
 }) => {
   const { t } = useTranslation();
-  const viewShotRef = useRef<ViewShot>(null);
+  const viewShotRef = useRef<React.ElementRef<typeof ViewShot>>(null);
   const [products, setProducts] = useState<QuickSaleItem[]>([]);
+  const eventId = route.params?.eventId;
 
   useFocusEffect(
     useCallback(() => {
       const items = getQuickSaleItems();
+      if (!eventId) {
+        setProducts(items);
+        return;
+      }
+
+      const event = getEventById(eventId);
+      if (event?.productIds && event.productIds.length > 0) {
+        setProducts(items.filter(item => event.productIds!.includes(item.id)));
+        return;
+      }
+
       setProducts(items);
-    }, [])
+    }, [eventId])
   );
 
   const handleShareText = async () => {
@@ -34,7 +49,7 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
 
     const lines = products.map(p => `• ${p.itemName}  —  ${formatCurrency(p.defaultPrice)}`);
     const menu = [
-      `�️ ${t('menu.menuTitle')}`,
+      `VendStats ${t('menu.menuTitle')}`,
       '',
       ...lines,
       '',
@@ -113,13 +128,18 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
           }, shadows.lg]}>
             {/* Menu Header */}
             <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Image
+                source={MascotImages.tent}
+                style={{ width: 64, height: 64, marginBottom: 8 }}
+                resizeMode="contain"
+              />
               <Text style={{
                 fontSize: 24,
                 fontWeight: '800',
                 color: colors.textPrimary,
-                letterSpacing: -0.5,
+                letterSpacing: 0,
               }}>
-                🛍️ {t('menu.menuTitle')}
+                {t('menu.menuTitle')}
               </Text>
               <View style={{
                 width: 40,
@@ -145,7 +165,7 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
                 {/* Product Image */}
                 {product.imageUri ? (
                   <Image
-                    source={{ uri: product.imageUri }}
+                    source={{ uri: resolveProductImageUri(product.imageUri) }}
                     style={{
                       width: 52,
                       height: 52,
@@ -221,7 +241,12 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
             ))}
 
             {/* Footer */}
-            <View style={{ alignItems: 'center', marginTop: 16 }}>
+            <View style={{ alignItems: 'center', marginTop: 16, flexDirection: 'row', justifyContent: 'center' }}>
+              <Image
+                source={MascotImages.smile}
+                style={{ width: 22, height: 22, marginRight: 6 }}
+                resizeMode="contain"
+              />
               <Text style={{ fontSize: 11, color: colors.textMuted }}>
                 {t('menu.poweredBy')} VendStats
               </Text>

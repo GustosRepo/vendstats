@@ -12,6 +12,8 @@ module.exports = {
         jsx: 'react-jsx',
         esModuleInterop: true,
         strict: true,
+        rootDir: '<rootDir>/src',
+        ignoreDeprecations: '6.0',
       },
     }],
   },

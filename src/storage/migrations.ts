@@ -1,20 +1,20 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { getQuickSaleItems } from './sales';
 import { mmkvStorage} from './mmkv';
 import { STORAGE_KEYS, QuickSaleItem } from '../types';
 
-// v1 — clear broken absolute URIs
-// v2 — convert surviving absolute URIs to relative paths
+// v1 — legacy image migration
+// v2 — convert provably safe absolute URIs to relative paths
 const MIGRATION_KEY = 'migration_images_v2';
 
 const PRODUCT_IMAGES_RELATIVE_DIR = 'product-images/';
 
 /**
- * One-time migration: validate all product image URIs and convert legacy
- * absolute paths to relative ones so they survive future UUID changes.
- * - Clears imageUri if the file no longer exists on disk.
- * - Converts absolute paths that still exist to portable relative paths.
- * - Runs only once (flagged via MIGRATION_KEY).
+ * One-time migration: convert legacy documentDirectory image URIs to relative
+ * paths so they survive future app-container UUID changes.
+ *
+ * This is intentionally non-destructive: if a URI cannot be verified or cannot
+ * be converted safely, keep the stored value instead of clearing it.
  */
 export const migrateProductImages = async (): Promise<boolean> => {
   // Skip if already at v2
@@ -23,7 +23,6 @@ export const migrateProductImages = async (): Promise<boolean> => {
   try {
     const items = getQuickSaleItems();
     let changed = false;
-    let lostCount = 0; // tracks actual data loss (file gone), not conversions
 
     const updated: QuickSaleItem[] = await Promise.all(
       items.map(async (item) => {
@@ -34,28 +33,23 @@ export const migrateProductImages = async (): Promise<boolean> => {
           return item;
         }
 
-        // Legacy absolute path — check if the file still exists
+        // Legacy absolute path in our document directory — convert to relative.
         try {
-          const info = await FileSystem.getInfoAsync(item.imageUri);
-          if (!info.exists) {
-            // File is gone (UUID change) — clear it and count as lost
-            lostCount++;
-            changed = true;
-            return { ...item, imageUri: undefined };
+          const docDir = FileSystem.documentDirectory ?? '';
+          if (!docDir || !item.imageUri.startsWith(docDir)) {
+            return item;
           }
 
-          // File exists — convert to relative path for portability (not a loss)
-          const docDir = FileSystem.documentDirectory ?? '';
-          const relative = item.imageUri.startsWith(docDir)
-            ? item.imageUri.slice(docDir.length)
-            : item.imageUri;
+          const info = await FileSystem.getInfoAsync(item.imageUri);
+          if (!info.exists) {
+            return item;
+          }
+
+          const relative = item.imageUri.slice(docDir.length);
           changed = true;
           return { ...item, imageUri: relative };
         } catch {
-          // URI is invalid / unreadable — clear it and count as lost
-          lostCount++;
-          changed = true;
-          return { ...item, imageUri: undefined };
+          return item;
         }
       })
     );
@@ -65,11 +59,9 @@ export const migrateProductImages = async (): Promise<boolean> => {
     }
 
     mmkvStorage.setBoolean(MIGRATION_KEY, true);
-    // Only return true (triggering the alert) when photos were actually lost
-    return lostCount > 0;
+    return false;
   } catch (error) {
     console.warn('Image migration failed:', error);
-    mmkvStorage.setBoolean(MIGRATION_KEY, true);
     return false;
   }
 };
