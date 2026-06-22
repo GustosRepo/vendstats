@@ -10,8 +10,11 @@ import { initializeAnalytics } from './src/services/analytics';
 import { initializeRevenueCat, addCustomerInfoUpdateListener } from './src/services/revenuecat';
 import { restoreLanguage } from './src/i18n';
 import { migrateProductImages } from './src/storage/migrations';
+import { initializeSentry, wrapWithSentry } from './src/services/sentry';
 
-export default function App() {
+initializeSentry();
+
+function App() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -69,3 +72,5 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+export default wrapWithSentry(App);

@@ -28,6 +28,7 @@ import { getAllEvents, getAllSales } from '../../../storage';
 import { SubscriptionState } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
 import { changeLanguage, LANGUAGES, SupportedLanguage } from '../../../i18n';
+import { captureTestSentryEvent } from '../../../services/sentry';
 
 // Settings Row Component
 const SettingsRow: React.FC<{
@@ -152,6 +153,17 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
     } else {
       navigation.navigate('Paywall');
     }
+  };
+
+  const handleTestSentry = () => {
+    const eventId = captureTestSentryEvent();
+
+    if (!eventId) {
+      Alert.alert('Sentry Not Configured', 'Set EXPO_PUBLIC_SENTRY_DSN and run a native build before sending a test event.');
+      return;
+    }
+
+    Alert.alert('Sentry Test Sent', `Queued test event: ${eventId}`);
   };
 
   const shareCSVFile = async (csv: string, suffix: string) => {
@@ -589,6 +601,13 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
                   </Text>
                 </View>
               </TouchableOpacity>
+              <SettingsRow
+                icon="bug-outline"
+                title="Send Sentry Test Event"
+                subtitle="Capture a test exception from this device"
+                onPress={handleTestSentry}
+                isLast
+              />
             </SettingsCard>
           </View>
         )}

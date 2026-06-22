@@ -69,6 +69,13 @@
             "googleAppMeasurementOnDeviceConversion": true
           }
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "codewerx-llc",
+          "project": "vendstats"
+        }
       ]
     ],
     "extra": {
