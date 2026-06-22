@@ -54,9 +54,9 @@ RevenueCat initialized successfully: true
 
 ### Privacy Requirements:
 The app includes an in-app privacy policy that covers:
-- User data collection (anonymous analytics)
+- User data collection, including Firebase analytics and Sentry diagnostics
 - Subscription data handling
-- No personal information stored locally
+- Local storage of user-entered business data
 
 ### Build Commands:
 ```bash

@@ -75,7 +75,7 @@ Secondary: Finance
 - [x] NSCameraUsageDescription — photo capture for products & receipts
 - [x] NSPhotoLibraryUsageDescription — import product/receipt photos
 - [ ] Publish Privacy Policy & TOS pages at the above URL before submission
-- [ ] Fill out App Store Connect privacy questionnaire (data NOT collected — all local storage)
+- [ ] Fill out App Store Connect privacy questionnaire to reflect Firebase Analytics, Sentry diagnostics, RevenueCat purchases, and any AdMob data flows you enable
 
 ### In-App Purchases
 - [x] RevenueCat integration (react-native-purchases)
@@ -121,16 +121,20 @@ eas submit --platform ios
 
 ## Privacy Nutrition Label (App Store Connect)
 
-**Data NOT Collected:**
-VendStats stores all data locally on the device using MMKV/AsyncStorage. No user data is transmitted to our servers.
+**Core app data stored locally:**
+VendStats stores user-entered business data locally on the device using MMKV/AsyncStorage rather than syncing it to our own servers.
+
+**Data collected by third-party services:**
+Firebase Analytics and Sentry may collect limited technical information such as device or installation identifiers, app usage events, crash logs, diagnostic data, and performance information. Final App Store Connect answers should be based on the exact SDK configuration shipped in the release build.
 
 **Third-Party SDKs:**
 - RevenueCat — processes subscription purchases (Apple handles payment data)
 - Google Mobile Ads SDK — serves AdMob ads
 - Firebase Analytics — supports Google Ads app campaign attribution and conversion measurement
+- Sentry — captures crash reports, diagnostics, and performance monitoring data
 
-**Data categories to mark as "Not Collected":**
-Revisit this section before submission. Firebase Analytics and AdMob may change the App Store privacy answers and ATT requirements depending on the data flows and campaign setup you enable.
+**Submission note:**
+Revisit this section before submission. Firebase Analytics, Sentry, and AdMob may change the App Store privacy answers and ATT requirements depending on the data flows and campaign setup you enable.
 
 - Contact Info ✗
 - Health & Fitness ✗
