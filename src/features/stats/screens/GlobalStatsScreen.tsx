@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, RefreshControl, Dimensions, Image, TouchableOpacity, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AdBanner } from '../../../components';
+import { AdBanner, ReportCard } from '../../../components';
 import { useFocusEffect } from '@react-navigation/native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import ViewShot from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import { TabScreenProps } from '../../../navigation/types';
 import { EmptyState } from '../../../components';
 import { TexturePattern } from '../../../components/TexturePattern';
@@ -17,8 +20,19 @@ import { calculateGlobalStats, getRevenueOverTime, getRevenueByPeriod, getTopSel
 import { formatCurrency } from '../../../utils/currency';
 import { GlobalStats } from '../../../types';
 import { colors, shadows, radius } from '../../../theme';
-import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { formatDate } from '../../../utils/date';
+
+type MonthlySummaryData = {
+  monthName: string;
+  eventCount: number;
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  totalItems: number;
+  bestEventName: string;
+  bestEventProfit: number;
+};
 
 // Hero Metric Card
 const HeroMetricCard: React.FC<{
@@ -85,7 +99,9 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
   const [allSalesRef, setAllSalesRef] = useState<any[]>([]);
   const [smartInsights, setSmartInsights] = useState<{ icon: string; key: string; params?: Record<string, string | number> }[]>([]);
   const [revenueGrowth, setRevenueGrowth] = useState<string | undefined>(undefined);
+  const [monthlySummary, setMonthlySummary] = useState<MonthlySummaryData | null>(null);
   const lastLoadedVersion = useRef(-1);
+  const monthlyReportShotRef = useRef<React.ElementRef<typeof ViewShot>>(null);
 
   const screenWidth = Dimensions.get('window').width - 48;
 
@@ -146,6 +162,53 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
       setTopProducts(getTopSellingProducts(sales, 5));
       setEventProfits(getProfitByEvent(events, sales));
       setSmartInsights(generateSmartInsights(events, sales));
+
+      // Monthly summary card data
+      const now = new Date();
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      const monthName = formatDate(now, 'MMMM yyyy');
+
+      const monthEvents = events.filter(e => {
+        try {
+          const d = new Date(e.date);
+          if (isNaN(d.getTime())) return false;
+          return isWithinInterval(d, { start: monthStart, end: monthEnd });
+        } catch {
+          return false;
+        }
+      });
+
+      const monthEventIds = new Set(monthEvents.map(e => e.id));
+      const monthSales = sales.filter(s => monthEventIds.has(s.eventId));
+
+      const totalRevenue = monthSales.reduce((sum, s) => sum + s.quantity * s.salePrice, 0);
+      const totalCost = monthSales.reduce((sum, s) => sum + s.quantity * s.costPerItem, 0);
+      const totalExpenses = monthEvents.reduce((sum, e) => sum + (e.boothFee ?? 0) + (e.travelCost ?? 0) + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
+      const netProfit = totalRevenue - totalCost - totalExpenses;
+      const totalItems = monthSales.reduce((sum, s) => sum + s.quantity, 0);
+
+      let bestEventName = '';
+      let bestEventProfit = -Infinity;
+      monthEvents.forEach(e => {
+        const eSales = monthSales.filter(s => s.eventId === e.id);
+        const eStats = calculateEventStats(e, eSales);
+        if (eStats.netProfit > bestEventProfit) {
+          bestEventProfit = eStats.netProfit;
+          bestEventName = e.name;
+        }
+      });
+
+      setMonthlySummary({
+        monthName,
+        eventCount: monthEvents.length,
+        totalRevenue,
+        totalExpenses,
+        netProfit,
+        totalItems,
+        bestEventName,
+        bestEventProfit: bestEventProfit === -Infinity ? 0 : bestEventProfit,
+      });
     }
   }, []);
 
@@ -162,57 +225,40 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
   }, [loadStats]);
 
   const handleShareMonthlyReport = async () => {
-    const events = getAllEvents();
-    const sales = getAllSales();
-    const now = new Date();
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
-    const monthName = formatDate(now, 'MMMM yyyy');
+    if (!monthlySummary) return;
 
-    // Filter events this month
-    const monthEvents = events.filter(e => {
-      try {
-        const d = new Date(e.date);
-        if (isNaN(d.getTime())) return false;
-        return isWithinInterval(d, { start: monthStart, end: monthEnd });
-      } catch {
-        return false;
+    try {
+      const capture = monthlyReportShotRef.current?.capture;
+      if (!capture) throw new Error('Capture unavailable');
+      const uri = await capture();
+      const dest = `${FileSystem.cacheDirectory}vendstats-monthly-report-${Date.now()}.png`;
+      await FileSystem.copyAsync({ from: uri, to: dest });
+
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(dest, {
+          mimeType: 'image/png',
+          dialogTitle: t('monthlySummary.share'),
+          UTI: 'public.png',
+        });
+        return;
       }
-    });
+    } catch {
+      // Fall back to text share below
+    }
 
-    // Filter sales this month
-    const monthEventIds = new Set(monthEvents.map(e => e.id));
-    const monthSales = sales.filter(s => monthEventIds.has(s.eventId));
-
-    const totalRevenue = monthSales.reduce((sum, s) => sum + s.quantity * s.salePrice, 0);
-    const totalCost = monthSales.reduce((sum, s) => sum + s.quantity * s.costPerItem, 0);
-    const totalExpenses = monthEvents.reduce((sum, e) => sum + (e.boothFee ?? 0) + (e.travelCost ?? 0) + (e.suppliesCost || 0) + (e.miscCost || 0), 0);
-    const netProfit = totalRevenue - totalCost - totalExpenses;
-    const totalItems = monthSales.reduce((sum, s) => sum + s.quantity, 0);
-
-    // Best event
-    let bestEvent = '';
-    let bestProfit = -Infinity;
-    monthEvents.forEach(e => {
-      const eSales = monthSales.filter(s => s.eventId === e.id);
-      const eStats = calculateEventStats(e, eSales);
-      if (eStats.netProfit > bestProfit) {
-        bestProfit = eStats.netProfit;
-        bestEvent = e.name;
-      }
-    });
-
-    const emoji = netProfit >= 0 ? '📈' : '📉';
-
+    const emoji = monthlySummary.netProfit >= 0 ? '📈' : '📉';
     const report = [
-      `📊 ${t('monthlySummary.title')} — ${monthName}`,
+      `📊 ${t('monthlySummary.title')} — ${monthlySummary.monthName}`,
       '',
-      `🗓 ${t('monthlySummary.events')}: ${monthEvents.length}`,
-      `💰 ${t('common.revenue')}: ${formatCurrency(totalRevenue)}`,
-      `${emoji} ${t('report.netProfit')}: ${formatCurrency(netProfit)}`,
-      `📦 ${t('report.itemsSold')}: ${totalItems}`,
+      `🗓 ${t('monthlySummary.events')}: ${monthlySummary.eventCount}`,
+      `💰 ${t('common.revenue')}: ${formatCurrency(monthlySummary.totalRevenue)}`,
+      `${emoji} ${t('report.netProfit')}: ${formatCurrency(monthlySummary.netProfit)}`,
+      `📦 ${t('report.itemsSold')}: ${monthlySummary.totalItems}`,
       '',
-      bestEvent ? `⭐ ${t('monthlySummary.bestEvent')}: ${bestEvent} (${formatCurrency(bestProfit)})` : '',
+      monthlySummary.bestEventName
+        ? `⭐ ${t('monthlySummary.bestEvent')}: ${monthlySummary.bestEventName} (${formatCurrency(monthlySummary.bestEventProfit)})`
+        : '',
       '',
       `— ${t('report.generatedBy')} VendStats`,
     ].filter(Boolean).join('\n');
@@ -384,6 +430,73 @@ export const GlobalStatsScreen: React.FC<TabScreenProps<'Stats'>> = ({ navigatio
             <Text style={{ fontSize: 13, fontWeight: '600', color: colors.copper }}>{t('monthlySummary.share')}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Monthly Summary Card */}
+        {monthlySummary && (
+          <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
+            <ViewShot
+              ref={monthlyReportShotRef}
+              options={{ format: 'png', quality: 1.0, result: 'tmpfile' }}
+            >
+              <ReportCard
+                headerContent={
+                  <View>
+                    <Text style={{ fontSize: 20, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 }}>
+                      {t('monthlySummary.title')}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                      <Ionicons name="calendar-outline" size={13} color="rgba(255,255,255,0.8)" style={{ marginRight: 6 }} />
+                      <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+                        {monthlySummary.monthName}
+                      </Text>
+                    </View>
+                  </View>
+                }
+                heroLabel={t('report.netProfit')}
+                heroValue={formatCurrency(monthlySummary.netProfit)}
+                heroPositive={monthlySummary.netProfit >= 0}
+                summaryMetrics={[
+                  {
+                    label: t('common.revenue'),
+                    value: formatCurrency(monthlySummary.totalRevenue),
+                    borderRight: true,
+                  },
+                  {
+                    label: t('eventReport.expenses'),
+                    value: formatCurrency(monthlySummary.totalExpenses),
+                  },
+                ]}
+                additionalMetrics={[
+                  {
+                    label: t('monthlySummary.events'),
+                    value: String(monthlySummary.eventCount),
+                    borderRight: true,
+                  },
+                  {
+                    label: t('report.itemsSold'),
+                    value: String(monthlySummary.totalItems),
+                    borderRight: true,
+                  },
+                  {
+                    label: t('monthlySummary.bestEvent'),
+                    value: monthlySummary.bestEventName || '—',
+                  },
+                ]}
+                footerContent={
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600' }}>
+                      {t('monthlySummary.bestEvent')}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.growth, fontWeight: '700', maxWidth: '58%' }} numberOfLines={1}>
+                      {monthlySummary.bestEventName ? formatCurrency(monthlySummary.bestEventProfit) : '—'}
+                    </Text>
+                  </View>
+                }
+                showBranding
+              />
+            </ViewShot>
+          </View>
+        )}
 
         <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
           {/* Hero - Total Profit */}
