@@ -26,6 +26,11 @@ export const QrCodeFab: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
 
+  const pauseForPickerTransition = () =>
+    new Promise<void>(resolve => {
+      setTimeout(resolve, 160);
+    });
+
   // Reload QR URI when screen focuses
   useFocusEffect(
     useCallback(() => {
@@ -51,31 +56,68 @@ export const QrCodeFab: React.FC = () => {
   };
 
   const pickFromCamera = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(t('qrCode.permissionNeeded'), t('qrCode.cameraPermission'));
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      quality: 0.9,
-    });
-    if (!result.canceled && result.assets[0]) {
-      await saveQrImage(result.assets[0].uri);
-      setShowSetupModal(false);
-      setShowModal(true);
+    const reopenSetup = showSetupModal;
+    const reopenDisplay = showModal;
+
+    setShowSetupModal(false);
+    setShowModal(false);
+    await pauseForPickerTransition();
+
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('qrCode.permissionNeeded'), t('qrCode.cameraPermission'));
+        if (reopenSetup) setShowSetupModal(true);
+        if (reopenDisplay) setShowModal(true);
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await saveQrImage(result.assets[0].uri);
+        setShowModal(true);
+        return;
+      }
+
+      if (reopenSetup) setShowSetupModal(true);
+      if (reopenDisplay) setShowModal(true);
+    } catch {
+      Alert.alert(t('common.error'), t('addItem.saveError'));
+      if (reopenSetup) setShowSetupModal(true);
+      if (reopenDisplay) setShowModal(true);
     }
   };
 
   const pickFromLibrary = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.9,
-    });
-    if (!result.canceled && result.assets[0]) {
-      await saveQrImage(result.assets[0].uri);
-      setShowSetupModal(false);
-      setShowModal(true);
+    const reopenSetup = showSetupModal;
+    const reopenDisplay = showModal;
+
+    setShowSetupModal(false);
+    setShowModal(false);
+    await pauseForPickerTransition();
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await saveQrImage(result.assets[0].uri);
+        setShowModal(true);
+        return;
+      }
+
+      if (reopenSetup) setShowSetupModal(true);
+      if (reopenDisplay) setShowModal(true);
+    } catch {
+      Alert.alert(t('common.error'), t('addItem.saveError'));
+      if (reopenSetup) setShowSetupModal(true);
+      if (reopenDisplay) setShowModal(true);
     }
   };
 
