@@ -190,7 +190,9 @@ export const DashboardScreen: React.FC<TabScreenProps<'Dashboard'>> = ({ navigat
     // Daily reminder check
     if (getReminderEnabled() && allEvents.length > 0) {
       const today = new Date().toISOString().split('T')[0];
-      const salesToday = allSales.filter(s => s.createdAt.startsWith(today));
+      const salesToday = allSales.filter(
+        s => typeof s?.createdAt === 'string' && s.createdAt.startsWith(today)
+      );
       setShowReminder(salesToday.length === 0);
     } else {
       setShowReminder(false);

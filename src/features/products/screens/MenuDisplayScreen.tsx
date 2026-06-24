@@ -35,8 +35,9 @@ export const MenuDisplayScreen: React.FC<RootStackScreenProps<'MenuDisplay'>> = 
       }
 
       const event = getEventById(eventId);
-      if (event?.productIds && event.productIds.length > 0) {
-        setProducts(items.filter(item => event.productIds!.includes(item.id)));
+      const selectedProductIds = Array.isArray(event?.productIds) ? event.productIds : [];
+      if (selectedProductIds.length > 0) {
+        setProducts(items.filter(item => selectedProductIds.includes(item.id)));
         return;
       }
 

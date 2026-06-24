@@ -39,10 +39,11 @@ export const QuickSaleScreen: React.FC<RootStackScreenProps<'QuickSale'>> = ({
   const loadQuickItems = () => {
     const allItems = getQuickSaleItems();
     const event = getEventById(eventId);
+    const selectedProductIds = Array.isArray(event?.productIds) ? event.productIds : [];
     
     // Filter by event's selected products if set
-    if (event?.productIds && event.productIds.length > 0) {
-      const filtered = allItems.filter(item => event.productIds!.includes(item.id));
+    if (selectedProductIds.length > 0) {
+      const filtered = allItems.filter(item => selectedProductIds.includes(item.id));
       setQuickItems(filtered);
     } else {
       setQuickItems(allItems);

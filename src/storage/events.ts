@@ -2,10 +2,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { mmkvStorage, bumpDataVersion } from './mmkv';
 import { Event, CreateEventInput, UpdateEventInput, STORAGE_KEYS } from '../types';
 
+const isValidEvent = (value: unknown): value is Event => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<Event>;
+  return typeof candidate.id === 'string' && candidate.id.length > 0;
+};
+
 // Get all events
 export const getAllEvents = (): Event[] => {
   const events = mmkvStorage.getJSON<Event[]>(STORAGE_KEYS.EVENTS);
-  return events || [];
+  return Array.isArray(events) ? events.filter(isValidEvent) : [];
 };
 
 // Get single event by ID

@@ -2,10 +2,27 @@ import { v4 as uuidv4 } from 'uuid';
 import { mmkvStorage, bumpDataVersion } from './mmkv';
 import { Sale, CreateSaleInput, UpdateSaleInput, QuickSaleItem, STORAGE_KEYS } from '../types';
 
+const isValidSale = (value: unknown): value is Sale => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<Sale>;
+  return (
+    typeof candidate.id === 'string' &&
+    candidate.id.length > 0 &&
+    typeof candidate.eventId === 'string' &&
+    candidate.eventId.length > 0
+  );
+};
+
+const isValidQuickSaleItem = (value: unknown): value is QuickSaleItem => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<QuickSaleItem>;
+  return typeof candidate.id === 'string' && candidate.id.length > 0;
+};
+
 // Get all sales
 export const getAllSales = (): Sale[] => {
   const sales = mmkvStorage.getJSON<Sale[]>(STORAGE_KEYS.SALES);
-  return sales || [];
+  return Array.isArray(sales) ? sales.filter(isValidSale) : [];
 };
 
 // Get sales for specific event
@@ -152,7 +169,7 @@ export const deleteAllSalesForEvent = (eventId: string): number => {
 // Quick Sale Items Management
 export const getQuickSaleItems = (): QuickSaleItem[] => {
   const items = mmkvStorage.getJSON<QuickSaleItem[]>(STORAGE_KEYS.QUICK_ITEMS);
-  return items || [];
+  return Array.isArray(items) ? items.filter(isValidQuickSaleItem) : [];
 };
 
 export const addQuickSaleItem = (item: Omit<QuickSaleItem, 'id'>): QuickSaleItem => {

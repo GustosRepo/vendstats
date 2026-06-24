@@ -352,16 +352,20 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
       {
         text: t('qrCode.chooseFromLibrary'),
         onPress: async () => {
-          const result = await (await import('expo-image-picker')).launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            quality: 0.9,
-          });
-          if (!result.canceled && result.assets[0]) {
-            // Delete old QR file before replacing
-            if (qrCodeUri) await deleteStoredFile(qrCodeUri);
-            const relativePath = await persistQrImage(result.assets[0].uri);
-            setQrCodeUri(relativePath);
-            setQrCodeUriState(relativePath);
+          try {
+            const result = await (await import('expo-image-picker')).launchImageLibraryAsync({
+              mediaTypes: ['images'],
+              quality: 0.9,
+            });
+            if (!result.canceled && result.assets[0]) {
+              // Delete old QR file before replacing
+              if (qrCodeUri) await deleteStoredFile(qrCodeUri);
+              const relativePath = await persistQrImage(result.assets[0].uri);
+              setQrCodeUri(relativePath);
+              setQrCodeUriState(relativePath);
+            }
+          } catch {
+            Alert.alert(t('common.error'));
           }
         },
       },
