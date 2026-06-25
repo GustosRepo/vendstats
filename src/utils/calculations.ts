@@ -695,7 +695,7 @@ export const calculateForecast = (
     if (targetEvent) {
       // Tag overlap bonus
       if (Array.isArray(targetEvent.tags) && Array.isArray(event.tags)) {
-        const overlap = targetEvent.tags.filter(t => event.tags.includes(t)).length;
+        const overlap = targetEvent.tags.filter(t => event.tags!.includes(t)).length;
         if (overlap > 0) weight += overlap * 0.5;
       }
       // Location match
