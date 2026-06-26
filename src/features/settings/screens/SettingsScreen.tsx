@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, Linking, Image, Modal,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useTranslation } from 'react-i18next';
@@ -103,6 +104,7 @@ const SettingsCard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
+  const appVersion = Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '1.0.0';
   const [subscription, setSubscription] = useState<SubscriptionState | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [trialDays, setTrialDays] = useState(0);
@@ -547,7 +549,7 @@ export const SettingsScreen: React.FC<TabScreenProps<'Settings'>> = ({ navigatio
             <SettingsRow
               icon="information-circle-outline"
               title={t('settings.version')}
-              value="1.0.0"
+              value={appVersion}
               showChevron={false}
             />
             <SettingsRow
