@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View, SafeAreaView, StatusBar, ViewStyle, StyleSheet, Dimensions } from 'react-native';
+import { View, SafeAreaView, ViewStyle, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Defs, Pattern, Line, Rect } from 'react-native-svg';
 import { colors } from '../../theme';
 
@@ -79,7 +79,6 @@ export const AppScreen: React.FC<AppScreenProps> = ({
       className="flex-1 bg-[#F7F7F8]"
       style={{ backgroundColor: colors.background }}
     >
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <TexturePattern />
       {header}
       <View
